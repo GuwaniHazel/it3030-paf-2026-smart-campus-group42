@@ -31,4 +31,15 @@ public class TicketService {
     public void deleteTicket(Long id) {
         ticketRepository.deleteById(id);
     }
+    public TicketModel assignTicket(Long id, String assignedTo) {
+        Optional<TicketModel> ticketOpt = ticketRepository.findById(id);
+
+        if (ticketOpt.isPresent()) {
+            TicketModel ticket = ticketOpt.get();
+            ticket.setAssignedTo(assignedTo);
+            return ticketRepository.save(ticket);
+        }
+
+        return null;
+    }
 }

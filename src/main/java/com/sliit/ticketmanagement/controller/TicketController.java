@@ -64,4 +64,17 @@ public class TicketController {
         ticketService.deleteTicket(id);
         return ResponseEntity.noContent().build();
     }
+    @PatchMapping("/{id}/assign")
+    public ResponseEntity<TicketModel> assignTicket(
+            @PathVariable Long id,
+            @RequestParam String assignedTo) {
+
+        TicketModel updated = ticketService.assignTicket(id, assignedTo);
+
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(updated);
+    }
 }
