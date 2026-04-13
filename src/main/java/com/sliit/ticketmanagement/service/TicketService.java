@@ -42,4 +42,14 @@ public class TicketService {
 
         return null;
     }
+    public TicketModel updateTicketStatus(Long id, String status) {
+        TicketModel ticket = ticketRepository.findById(id).orElse(null);
+
+        if (ticket == null) {
+            return null;
+        }
+
+        ticket.setStatus(status);
+        return ticketRepository.save(ticket);
+    }
 }

@@ -77,4 +77,17 @@ public class TicketController {
 
         return ResponseEntity.ok(updated);
     }
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<TicketModel> updateStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+
+        TicketModel updated = ticketService.updateTicketStatus(id, status);
+
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(updated);
+    }
 }
