@@ -5,11 +5,18 @@ function MyTickets() {
   const [comments, setComments] = useState({});
   const [newComments, setNewComments] = useState({});
 
+  const loadTickets = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/tickets");
+      const data = await res.json();
+      setTickets(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
-    fetch("http://localhost:8080/api/tickets")
-      .then((res) => res.json())
-      .then((data) => setTickets(data))
-      .catch((err) => console.error(err));
+    loadTickets();
   }, []);
 
   const fetchComments = async (ticketId) => {
@@ -49,7 +56,7 @@ function MyTickets() {
         },
         body: JSON.stringify({
           ticketId: ticketId,
-          user: "Admin",
+          user: "Student",
           message: message
         })
       });
@@ -74,20 +81,37 @@ function MyTickets() {
         <div
           key={ticket.id}
           style={{
-            border: "1px solid gray",
-            margin: "10px",
-            padding: "10px",
-            borderRadius: "8px"
+            border: "1px solid #ddd",
+            margin: "12px",
+            padding: "16px",
+            borderRadius: "10px",
+            background: "#fff",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
           }}
         >
+          {/* 🔥 NEW IMPORTANT FIELDS */}
           <h3>{ticket.title}</h3>
+          <p><b>Ticket Code:</b> {ticket.ticketCode}</p>
+          <p><b>Student Name:</b> {ticket.createdBy}</p>
+          <p><b>Student ID:</b> {ticket.studentId}</p>
+          <p><b>Email:</b> {ticket.studentEmail}</p>
+
+          <hr />
+
           <p><b>Category:</b> {ticket.category}</p>
           <p><b>Description:</b> {ticket.description}</p>
           <p><b>Priority:</b> {ticket.priority}</p>
           <p><b>Status:</b> {ticket.status}</p>
-          <p><b>Assigned To:</b> {ticket.assignedTo}</p>
+          <p><b>Assigned To:</b> {ticket.assignedTo || "Not assigned"}</p>
 
-          <button onClick={() => fetchComments(ticket.id)}>Load Comments</button>
+          <p><b>Location:</b> {ticket.location || "-"}</p>
+          <p><b>Resource:</b> {ticket.resourceName || "-"}</p>
+
+          <div style={{ marginTop: "10px" }}>
+            <button onClick={() => fetchComments(ticket.id)}>
+              View Comments
+            </button>
+          </div>
 
           <div style={{ marginTop: "10px" }}>
             {comments[ticket.id] &&
@@ -109,15 +133,18 @@ function MyTickets() {
           <div style={{ marginTop: "10px" }}>
             <input
               type="text"
-              placeholder="Write a reply..."
+              placeholder="Write your reply..."
               value={newComments[ticket.id] || ""}
-              onChange={(e) => handleCommentChange(ticket.id, e.target.value)}
+              onChange={(e) =>
+                handleCommentChange(ticket.id, e.target.value)
+              }
+              style={{ padding: "6px", borderRadius: "6px" }}
             />
             <button
               onClick={() => addComment(ticket.id)}
               style={{ marginLeft: "8px" }}
             >
-              Add Reply
+              Send
             </button>
           </div>
         </div>
