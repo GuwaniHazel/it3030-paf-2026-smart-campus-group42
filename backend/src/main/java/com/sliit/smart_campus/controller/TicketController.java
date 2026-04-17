@@ -2,6 +2,7 @@ package com.sliit.smart_campus.controller;
 
 import com.sliit.smart_campus.model.TicketModel;
 import com.sliit.smart_campus.service.TicketService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ public class TicketController {
     }
 
     @PostMapping
-    public ResponseEntity<TicketModel> createTicket(@RequestBody TicketModel ticketModel) {
+    public ResponseEntity<TicketModel> createTicket(@Valid @RequestBody TicketModel ticketModel) {
         TicketModel savedTicket = ticketService.createTicket(ticketModel);
         return ResponseEntity.ok(savedTicket);
     }
@@ -43,7 +44,7 @@ public class TicketController {
     @PutMapping("/{id}")
     public ResponseEntity<TicketModel> updateTicket(
             @PathVariable Long id,
-            @RequestBody TicketModel updatedTicket) {
+            @Valid @RequestBody TicketModel updatedTicket) {
 
         TicketModel existing = ticketService.getTicketById(id);
 
@@ -56,7 +57,14 @@ public class TicketController {
         existing.setDescription(updatedTicket.getDescription());
         existing.setPriority(updatedTicket.getPriority());
         existing.setStatus(updatedTicket.getStatus());
+        existing.setResourceName(updatedTicket.getResourceName());
+        existing.setLocation(updatedTicket.getLocation());
+        existing.setPreferredContact(updatedTicket.getPreferredContact());
+        existing.setCreatedBy(updatedTicket.getCreatedBy());
+        existing.setStudentId(updatedTicket.getStudentId());
+        existing.setStudentEmail(updatedTicket.getStudentEmail());
         existing.setAssignedTo(updatedTicket.getAssignedTo());
+        existing.setResolutionNote(updatedTicket.getResolutionNote());
 
         return ResponseEntity.ok(ticketService.createTicket(existing));
     }
