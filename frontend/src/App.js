@@ -1,65 +1,114 @@
-import { useEffect, useState } from "react";
+// frontend/src/App.js
+import { useLocation, useNavigate } from "react-router-dom";
 import ResourcesPage from "./pages/ResourcesPage";
+import HomePage from "./pages/HomePage";
+import AboutUsPage from "./pages/AboutUsPage";
+import Layout from "./components/layout/Layout";
 
-const getPath = () => (typeof window !== "undefined" ? window.location.pathname : "/");
-
-const LandingPage = ({ navigate }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 px-4 py-12">
-    <div className="mx-auto max-w-4xl rounded-3xl bg-white p-8 shadow-xl">
-      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">Smart Campus</p>
-      <h1 className="mt-3 text-3xl font-bold text-slate-900 md:text-5xl">Resource Management System</h1>
-      <p className="mt-4 max-w-2xl text-sm text-slate-600 md:text-base">
-        Choose a role to enter the resource dashboard.
-      </p>
-
-      <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+const PlaceholderPage = ({ title, description, navigate }) => (
+  <div className="bg-slate-100 p-6 dark:bg-slate-950">
+    <div className="mx-auto mt-16 max-w-2xl rounded-2xl bg-white p-8 shadow-lg dark:bg-slate-900">
+      <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{title}</h1>
+      <p className="mt-3 text-slate-600 dark:text-slate-300">{description}</p>
+      <div className="mt-6 flex gap-2">
         <button
           type="button"
-          onClick={() => navigate("/admin")}
-          className="rounded-2xl bg-sky-600 px-6 py-5 text-left text-white transition hover:-translate-y-1 hover:bg-sky-700"
+          onClick={() => navigate("/")}
+          className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700"
         >
-          <span className="block text-sm font-semibold uppercase tracking-wide opacity-80">Admin</span>
-          <span className="mt-1 block text-xl font-bold">Manage resources</span>
-          <span className="mt-2 block text-sm opacity-90">Full CRUD, bulk actions, status management, CSV export.</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => navigate("/student")}
-          className="rounded-2xl bg-emerald-600 px-6 py-5 text-left text-white transition hover:-translate-y-1 hover:bg-emerald-700"
-        >
-          <span className="block text-sm font-semibold uppercase tracking-wide opacity-80">Student</span>
-          <span className="mt-1 block text-xl font-bold">Browse and book</span>
-          <span className="mt-2 block text-sm opacity-90">Read-only cards with booking UI.</span>
+          Back to Home
         </button>
       </div>
     </div>
   </div>
 );
 
-function App() {
-  const [pathname, setPathname] = useState(getPath());
+const BookingManagementPage = ({ navigate }) => (
+  <PlaceholderPage
+    title="Booking Management"
+    description="This is a placeholder page for Module B. Booking workflows will be implemented here."
+    navigate={navigate}
+  />
+);
 
-  useEffect(() => {
-    const onPopState = () => setPathname(getPath());
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+const TicketsPage = ({ navigate }) => (
+  <PlaceholderPage
+    title="Incident Tickets"
+    description="This is a placeholder page for Module C. Ticket reporting and tracking will be implemented here."
+    navigate={navigate}
+  />
+);
+
+const NotificationsPage = ({ navigate }) => (
+  <PlaceholderPage
+    title="Notifications"
+    description="This is a placeholder page for Module D. Real-time notifications will be implemented here."
+    navigate={navigate}
+  />
+);
+
+const LoginPage = ({ navigate }) => (
+  <PlaceholderPage
+    title="Authentication"
+    description="This is a placeholder page for Module E. Login and authentication features will be implemented here."
+    navigate={navigate}
+  />
+);
+
+
+
+const ContactPage = ({ navigate }) => (
+  <PlaceholderPage
+    title="Contact Us"
+    description="This is a placeholder Contact page. Add form, contact channels, and office details here."
+    navigate={navigate}
+  />
+);
+
+function App() {
+  const location = useLocation();
+  const routeNavigate = useNavigate();
+  const pathname = location.pathname;
 
   const navigate = (nextPath) => {
-    window.history.pushState({}, "", nextPath);
-    setPathname(nextPath);
+    routeNavigate(nextPath);
   };
 
+  let content = <HomePage navigate={navigate} />;
+
   if (pathname.startsWith("/admin")) {
-    return <ResourcesPage role="admin" navigate={navigate} />;
+    content = <ResourcesPage role="admin" navigate={navigate} />;
   }
 
   if (pathname.startsWith("/student")) {
-    return <ResourcesPage role="student" navigate={navigate} />;
+    content = <ResourcesPage role="student" navigate={navigate} />;
   }
 
-  return <LandingPage navigate={navigate} />;
+  if (pathname.startsWith("/bookings")) {
+    content = <BookingManagementPage navigate={navigate} />;
+  }
+
+  if (pathname.startsWith("/tickets")) {
+    content = <TicketsPage navigate={navigate} />;
+  }
+
+  if (pathname.startsWith("/notifications")) {
+    content = <NotificationsPage navigate={navigate} />;
+  }
+
+  if (pathname.startsWith("/login")) {
+    content = <LoginPage navigate={navigate} />;
+  }
+
+  if (pathname.startsWith("/about")) {
+    content = <AboutUsPage />;
+  }
+
+  if (pathname.startsWith("/contact")) {
+    content = <ContactPage navigate={navigate} />;
+  }
+
+  return <Layout>{content}</Layout>;
 }
 
 export default App;
