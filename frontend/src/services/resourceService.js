@@ -1,94 +1,127 @@
-import axios from "axios";
+const API_BASE_URL = "http://localhost:8080/api/resources";
 
-const resourceApi = axios.create({
-  baseURL: "http://localhost:8080/api/resources",
-  headers: {
-    "Content-Type": "application/json",
+const operationState = {
+  loading: {
+    getAllResources: false,
+    getResourceById: false,
+    createResource: false,
+    updateResource: false,
+    deleteResource: false,
+    getStats: false,
   },
+  error: {
+    getAllResources: null,
+    getResourceById: null,
+    createResource: null,
+    updateResource: null,
+    deleteResource: null,
+    getStats: null,
+  },
+};
+
+const getAuthHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
 
-export const getAllResources = async () => {
+const updateState = (operation, loading, error = null) => {
+  operationState.loading[operation] = loading;
+  operationState.error[operation] = error;
+};
+
+const parseResponse = async (response) => {
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    const message = data?.message || `Request failed with status ${response.status}`;
+    throw new Error(message);
+  }
+
+  return data;
+};
+
+const request = async (operation, url, options = {}) => {
+  updateState(operation, true, null);
+
   try {
-    const response = await resourceApi.get("/");
-    return response.data;
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...getAuthHeaders(),
+        ...(options.headers || {}),
+      },
+    });
+
+    return await parseResponse(response);
   } catch (error) {
-    throw handleApiError(error, "Failed to fetch resources");
+    updateState(operation, false, error.message || "Unexpected error");
+    throw error;
+  } finally {
+    updateState(operation, false, operationState.error[operation]);
   }
 };
 
-export const getResourceById = async (id) => {
-  try {
-    const response = await resourceApi.get(`/${id}`);
-    return response.data;
-  } catch (error) {
-    throw handleApiError(error, `Failed to fetch resource with id ${id}`);
-  }
-};
+export const resourceService = {
+  async getAllResources() {
+    return request("getAllResources", API_BASE_URL, { method: "GET" });
+  },
 
-export const createResource = async (resource) => {
-  try {
-    const response = await resourceApi.post("/", resource);
-    return response.data;
-  } catch (error) {
-    throw handleApiError(error, "Failed to create resource");
-  }
-};
+  async list() {
+    return this.getAllResources();
+  },
 
-export const updateResource = async (id, resource) => {
-  try {
-    const response = await resourceApi.put(`/${id}`, resource);
-    return response.data;
-  } catch (error) {
-    throw handleApiError(error, `Failed to update resource with id ${id}`);
-  }
-};
+  async getResourceById(id) {
+    return request("getResourceById", `${API_BASE_URL}/${id}`, { method: "GET" });
+  },
 
-export const deleteResource = async (id) => {
-  try {
-    const response = await resourceApi.delete(`/${id}`);
-    return response.data;
-  } catch (error) {
-    throw handleApiError(error, `Failed to delete resource with id ${id}`);
-  }
-};
+  async createResource(data) {
+    return request("createResource", API_BASE_URL, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
 
-export const searchResources = async (filters = {}) => {
-  try {
-    const params = {};
+  async create(data) {
+    return this.createResource(data);
+  },
 
-    if (hasValue(filters.type)) {
-      params.type = filters.type;
-    }
-    if (hasValue(filters.status)) {
-      params.status = filters.status;
-    }
-    if (hasValue(filters.location)) {
-      params.location = filters.location;
-    }
-    if (filters.minCapacity !== undefined && filters.minCapacity !== null && filters.minCapacity !== "") {
-      params.minCapacity = filters.minCapacity;
-    }
+  async updateResource(id, data) {
+    return request("updateResource", `${API_BASE_URL}/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
 
-    const response = await resourceApi.get("/", { params });
-    return response.data;
-  } catch (error) {
-    throw handleApiError(error, "Failed to search resources");
-  }
-};
+  async update(id, data) {
+    return this.updateResource(id, data);
+  },
 
-const hasValue = (value) => value !== undefined && value !== null && `${value}`.trim() !== "";
+  async deleteResource(id) {
+    return request("deleteResource", `${API_BASE_URL}/${id}`, {
+      method: "DELETE",
+    });
+  },
 
-const handleApiError = (error, fallbackMessage) => {
-  const serverMessage = error?.response?.data?.message;
-  const message = serverMessage || error?.message || fallbackMessage;
-  return new Error(message);
-};
+  async remove(id) {
+    return this.deleteResource(id);
+  },
 
-export default {
-  getAllResources,
-  getResourceById,
-  createResource,
-  updateResource,
-  deleteResource,
-  searchResources,
+  async getStats() {
+    return request("getStats", `${API_BASE_URL}/stats`, { method: "GET" });
+  },
+
+  // Loading and error state accessors for UI usage.
+  getLoadingState() {
+    return { ...operationState.loading };
+  },
+
+  getErrorState() {
+    return { ...operationState.error };
+  },
+
+  // Backward-compatible alias for older code paths.
+  async getResources() {
+    return this.getAllResources();
+  },
 };

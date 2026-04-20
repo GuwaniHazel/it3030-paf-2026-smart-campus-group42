@@ -32,7 +32,11 @@ public class Resource {
     @Column(nullable = false)
     private String location;
 
-    private String availabilityWindows;
+    @Column(nullable = false)
+    private String availableFrom;
+
+    @Column(nullable = false)
+    private String availableTo;
 
     @Column(nullable = false)
     private String status;

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/resources")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 public class ResourceController {
 
     @Autowired
@@ -76,6 +76,11 @@ public class ResourceController {
     public ResponseEntity<Resource> getResourceById(@PathVariable Long id) {
         validateId(id);
         return ResponseEntity.ok(resourceService.getResourceById(id));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getResourceStats() {
+        return ResponseEntity.ok(resourceService.getResourceStats());
     }
 
     @PostMapping
@@ -138,6 +143,18 @@ public class ResourceController {
 
         if (!hasText(resource.getLocation())) {
             throw new IllegalArgumentException("Location is required");
+        }
+
+        if (!hasText(resource.getAvailableFrom())) {
+            throw new IllegalArgumentException("Available from is required");
+        }
+
+        if (!hasText(resource.getAvailableTo())) {
+            throw new IllegalArgumentException("Available to is required");
+        }
+
+        if (resource.getCapacity() == null || resource.getCapacity() <= 0) {
+            throw new IllegalArgumentException("Capacity must be greater than 0");
         }
 
         if (!hasText(resource.getStatus())) {

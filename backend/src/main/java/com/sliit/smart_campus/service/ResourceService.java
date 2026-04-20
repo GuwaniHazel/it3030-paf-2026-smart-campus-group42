@@ -6,7 +6,9 @@ import com.sliit.smart_campus.repository.ResourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ResourceService {
@@ -38,7 +40,8 @@ public class ResourceService {
         existingResource.setType(resource.getType());
         existingResource.setCapacity(resource.getCapacity());
         existingResource.setLocation(resource.getLocation());
-        existingResource.setAvailabilityWindows(resource.getAvailabilityWindows());
+        existingResource.setAvailableFrom(resource.getAvailableFrom());
+        existingResource.setAvailableTo(resource.getAvailableTo());
         existingResource.setStatus(resource.getStatus());
         existingResource.setDescription(resource.getDescription());
 
@@ -71,6 +74,25 @@ public class ResourceService {
         return resourceRepository.findByCapacityGreaterThanEqual(minCapacity);
     }
 
+    public Map<String, Object> getResourceStats() {
+        List<Resource> resources = resourceRepository.findAll();
+
+        long total = resources.size();
+        long active = resources.stream().filter(resource -> "ACTIVE".equalsIgnoreCase(resource.getStatus())).count();
+        long outOfService = resources.stream().filter(resource -> "OUT_OF_SERVICE".equalsIgnoreCase(resource.getStatus())).count();
+        long maintenance = resources.stream().filter(resource -> "MAINTENANCE".equalsIgnoreCase(resource.getStatus())).count();
+        long categories = resources.stream().map(Resource::getType).filter(this::isBlankNegation).distinct().count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalResources", total);
+        stats.put("activeResources", active);
+        stats.put("outOfServiceResources", outOfService);
+        stats.put("maintenanceResources", maintenance);
+        stats.put("resourceCategories", categories);
+
+        return stats;
+    }
+
     private void validateRequiredFields(Resource resource) {
         if (resource == null) {
             throw new IllegalArgumentException("Resource payload is required");
@@ -88,16 +110,34 @@ public class ResourceService {
             throw new IllegalArgumentException("Location is required");
         }
 
+        if (isBlank(resource.getAvailableFrom())) {
+            throw new IllegalArgumentException("Available from is required");
+        }
+
+        if (isBlank(resource.getAvailableTo())) {
+            throw new IllegalArgumentException("Available to is required");
+        }
+
+        if (resource.getCapacity() == null || resource.getCapacity() <= 0) {
+            throw new IllegalArgumentException("Capacity must be greater than 0");
+        }
+
         if (isBlank(resource.getStatus())) {
             throw new IllegalArgumentException("Status is required");
         }
 
-        if (!"ACTIVE".equals(resource.getStatus()) && !"OUT_OF_SERVICE".equals(resource.getStatus())) {
-            throw new IllegalArgumentException("Status must be ACTIVE or OUT_OF_SERVICE");
+        if (!"ACTIVE".equals(resource.getStatus())
+                && !"OUT_OF_SERVICE".equals(resource.getStatus())
+                && !"MAINTENANCE".equals(resource.getStatus())) {
+            throw new IllegalArgumentException("Status must be ACTIVE, OUT_OF_SERVICE, or MAINTENANCE");
         }
     }
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private boolean isBlankNegation(String value) {
+        return !isBlank(value);
     }
 }
