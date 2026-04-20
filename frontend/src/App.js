@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ResourcesPage from "./pages/ResourcesPage";
 import HomePage from "./pages/HomePage";
 import AboutUsPage from "./pages/AboutUsPage";
+import ContactUsPage from "./pages/ContactUs";
 import Layout from "./components/layout/Layout";
 
 const PlaceholderPage = ({ title, description, navigate }) => (
@@ -55,16 +56,6 @@ const LoginPage = ({ navigate }) => (
   />
 );
 
-
-
-const ContactPage = ({ navigate }) => (
-  <PlaceholderPage
-    title="Contact Us"
-    description="This is a placeholder Contact page. Add form, contact channels, and office details here."
-    navigate={navigate}
-  />
-);
-
 function App() {
   const location = useLocation();
   const routeNavigate = useNavigate();
@@ -105,7 +96,7 @@ function App() {
   }
 
   if (pathname.startsWith("/contact")) {
-    content = <ContactPage navigate={navigate} />;
+    content = <ContactUsPage />;
   }
 
   return <Layout>{content}</Layout>;
