@@ -15,6 +15,7 @@ function CreateTicket({ onSuccess }) {
     resourceName: ""
   });
 
+  const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -31,62 +32,20 @@ function CreateTicket({ onSuccess }) {
     });
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const handleStudentIdChange = (e) => {
+    let value = e.target.value.toUpperCase();
+    value = value.replace(/[^A-Z0-9]/g, "");
+    value = value.slice(0, 10);
 
-    if (!ticket.createdBy.trim()) {
-      newErrors.createdBy = "Student name is required";
-    }
+    setTicket({
+      ...ticket,
+      studentId: value
+    });
 
-    if (!ticket.studentId.trim()) {
-      newErrors.studentId = "Student ID is required";
-    }
-
-    if (!ticket.studentEmail.trim()) {
-      newErrors.studentEmail = "Student email is required";
-    } else if (!/^\S+@\S+\.\S+$/.test(ticket.studentEmail)) {
-      newErrors.studentEmail = "Enter a valid email address";
-    }
-
-    if (!ticket.title.trim()) {
-      newErrors.title = "Ticket title is required";
-    }
-
-    if (!ticket.category.trim()) {
-      newErrors.category = "Category is required";
-    }
-
-    if (!ticket.priority.trim()) {
-      newErrors.priority = "Priority is required";
-    }
-
-    if (!ticket.description.trim()) {
-      newErrors.description = "Description is required";
-    } else if (ticket.description.trim().length < 10) {
-      newErrors.description = "Description must be at least 10 characters";
-    }
-
-    if (!ticket.preferredContactType.trim()) {
-      newErrors.preferredContactType = "Preferred contact type is required";
-    }
-
-    if (!ticket.preferredContact.trim()) {
-      newErrors.preferredContact = "Preferred contact value is required";
-    } else if (ticket.preferredContactType === "Email") {
-      if (!/^\S+@\S+\.\S+$/.test(ticket.preferredContact)) {
-        newErrors.preferredContact = "Enter a valid email address";
-      }
-    } else if (
-      ticket.preferredContactType === "Phone" ||
-      ticket.preferredContactType === "WhatsApp"
-    ) {
-      if (!/^\d{10}$/.test(ticket.preferredContact)) {
-        newErrors.preferredContact = "Enter exactly 10 digits";
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors({
+      ...errors,
+      studentId: ""
+    });
   };
 
   const handlePreferredContactChange = (e) => {
@@ -152,6 +111,91 @@ function CreateTicket({ onSuccess }) {
     });
   };
 
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+
+    const allowedTypes = [
+      "application/pdf",
+      "image/png",
+      "image/jpeg",
+      "image/jpg"
+    ];
+
+    if (!allowedTypes.includes(selectedFile.type)) {
+      alert("Only PDF, PNG, JPG, and JPEG files are allowed.");
+      e.target.value = "";
+      setFile(null);
+      return;
+    }
+
+    setFile(selectedFile);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!ticket.createdBy.trim()) {
+      newErrors.createdBy = "Student name is required";
+    }
+
+    if (!ticket.studentId.trim()) {
+      newErrors.studentId = "Student ID is required";
+    } else if (!/^[A-Za-z]{2,3}[0-9]{6,8}$/.test(ticket.studentId)) {
+      newErrors.studentId = "Format: IT12345678 (2-3 letters + 6-8 digits)";
+    }
+
+    if (!ticket.studentEmail.trim()) {
+      newErrors.studentEmail = "Student email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(ticket.studentEmail)) {
+      newErrors.studentEmail = "Enter a valid email address";
+    }
+
+    if (!ticket.title.trim()) {
+      newErrors.title = "Ticket title is required";
+    }
+
+    if (!ticket.category.trim()) {
+      newErrors.category = "Category is required";
+    }
+
+    if (!ticket.priority.trim()) {
+      newErrors.priority = "Priority is required";
+    }
+
+    if (!ticket.description.trim()) {
+      newErrors.description = "Description is required";
+    } else if (ticket.description.trim().length < 10) {
+      newErrors.description = "Description must be at least 10 characters";
+    }
+
+    if (!ticket.preferredContactType.trim()) {
+      newErrors.preferredContactType = "Preferred contact type is required";
+    }
+
+    if (!ticket.preferredContact.trim()) {
+      newErrors.preferredContact = "Preferred contact value is required";
+    } else if (ticket.preferredContactType === "Email") {
+      if (!/^\S+@\S+\.\S+$/.test(ticket.preferredContact)) {
+        newErrors.preferredContact = "Enter a valid email address";
+      }
+    } else if (
+      ticket.preferredContactType === "Phone" ||
+      ticket.preferredContactType === "WhatsApp"
+    ) {
+      if (!/^\d{10}$/.test(ticket.preferredContact)) {
+        newErrors.preferredContact = "Enter exactly 10 digits";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -173,12 +217,16 @@ function CreateTicket({ onSuccess }) {
         resourceName: ticket.resourceName
       };
 
-      const response = await fetch("http://localhost:8080/api/tickets", {
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(payload));
+
+      if (file) {
+        formData.append("file", file);
+      }
+
+      const response = await fetch("http://localhost:8080/api/tickets/upload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+        body: formData
       });
 
       if (!response.ok) {
@@ -203,6 +251,7 @@ function CreateTicket({ onSuccess }) {
         resourceName: ""
       });
 
+      setFile(null);
       setErrors({});
 
       if (onSuccess) {
@@ -243,7 +292,7 @@ function CreateTicket({ onSuccess }) {
             <input
               type="text"
               name="createdBy"
-              placeholder="Enter your name"
+              placeholder=""
               value={ticket.createdBy}
               onChange={handleChange}
               style={inputStyle}
@@ -256,9 +305,9 @@ function CreateTicket({ onSuccess }) {
             <input
               type="text"
               name="studentId"
-              placeholder="Enter your student ID"
+              placeholder="e.g. IT12345678"
               value={ticket.studentId}
-              onChange={handleChange}
+              onChange={handleStudentIdChange}
               style={inputStyle}
             />
             {errors.studentId && <p style={errorStyle}>{errors.studentId}</p>}
@@ -269,7 +318,7 @@ function CreateTicket({ onSuccess }) {
             <input
               type="email"
               name="studentEmail"
-              placeholder="Enter your email"
+              placeholder=""
               value={ticket.studentEmail}
               onChange={handleChange}
               style={inputStyle}
@@ -284,7 +333,7 @@ function CreateTicket({ onSuccess }) {
             <input
               type="text"
               name="title"
-              placeholder="Enter ticket title"
+              placeholder=""
               value={ticket.title}
               onChange={handleChange}
               style={inputStyle}
@@ -357,7 +406,7 @@ function CreateTicket({ onSuccess }) {
             <label>Description</label>
             <textarea
               name="description"
-              placeholder="Describe your issue clearly..."
+              placeholder=""
               value={ticket.description}
               onChange={handleChange}
               rows="5"
@@ -414,6 +463,21 @@ function CreateTicket({ onSuccess }) {
 
             {errors.preferredContact && (
               <p style={errorStyle}>{errors.preferredContact}</p>
+            )}
+          </div>
+
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label>Attachment (PDF / PNG / JPG)</label>
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onChange={handleFileChange}
+              style={inputStyle}
+            />
+            {file && (
+              <p style={{ fontSize: "13px", marginTop: "6px" }}>
+                Selected file: {file.name}
+              </p>
             )}
           </div>
         </div>

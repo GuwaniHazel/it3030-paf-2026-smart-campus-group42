@@ -99,7 +99,9 @@ function AdminTickets() {
       }
 
       await fetch(
-        `http://localhost:8080/api/tickets/${ticketId}/assign?assignedTo=${encodeURIComponent(assignedTo)}`,
+        `http://localhost:8080/api/tickets/${ticketId}/assign?assignedTo=${encodeURIComponent(
+          assignedTo
+        )}`,
         { method: "PATCH" }
       );
 
@@ -120,7 +122,9 @@ function AdminTickets() {
       }
 
       await fetch(
-        `http://localhost:8080/api/tickets/${ticketId}/status?status=${encodeURIComponent(status)}`,
+        `http://localhost:8080/api/tickets/${ticketId}/status?status=${encodeURIComponent(
+          status
+        )}`,
         { method: "PATCH" }
       );
 
@@ -157,8 +161,6 @@ function AdminTickets() {
 
       {tickets.map((ticket) => (
         <div key={ticket.id} className="ticket-card">
-          
-          {/* HEADER */}
           <div className="ticket-header">
             <span className="ticket-title">{ticket.title}</span>
             <span className={`ticket-status ${ticket.status}`}>
@@ -166,7 +168,6 @@ function AdminTickets() {
             </span>
           </div>
 
-          {/* BASIC INFO */}
           <p><b>Ticket Code:</b> {ticket.ticketCode}</p>
           <p><b>Student Name:</b> {ticket.createdBy}</p>
           <p><b>Student ID:</b> {ticket.studentId}</p>
@@ -174,7 +175,6 @@ function AdminTickets() {
 
           <hr />
 
-          {/* DETAILS */}
           <p><b>Category:</b> {ticket.category}</p>
           <p><b>Description:</b> {ticket.description}</p>
           <p><b>Priority:</b> {ticket.priority}</p>
@@ -182,8 +182,21 @@ function AdminTickets() {
           <p><b>Assigned To:</b> {ticket.assignedTo || "Not assigned"}</p>
           <p><b>Location:</b> {ticket.location || "-"}</p>
           <p><b>Resource:</b> {ticket.resourceName || "-"}</p>
+          <p>
+            <b>Attachment:</b>{" "}
+            {ticket.attachment ? (
+              <a
+                href={`http://localhost:8080/uploads/${ticket.attachment}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View File
+              </a>
+            ) : (
+              "No attachment"
+            )}
+          </p>
 
-          {/* ASSIGN */}
           <div className="ticket-actions">
             <select
               value={assignValues[ticket.id] || ""}
@@ -200,7 +213,6 @@ function AdminTickets() {
             </button>
           </div>
 
-          {/* STATUS */}
           <div className="ticket-actions">
             <select
               value={statusValues[ticket.id] || ""}
@@ -218,7 +230,6 @@ function AdminTickets() {
             </button>
           </div>
 
-          {/* COMMENTS */}
           <div className="ticket-actions">
             <button onClick={() => fetchComments(ticket.id)}>
               Load Comments
@@ -232,7 +243,6 @@ function AdminTickets() {
               </div>
             ))}
 
-          {/* REPLY */}
           <div className="ticket-actions">
             <input
               type="text"
@@ -245,7 +255,6 @@ function AdminTickets() {
             </button>
           </div>
 
-          {/* 🔥 DELETE BUTTON (BOTTOM RIGHT) */}
           <div className="delete-container-left">
             <button
               onClick={() => deleteTicket(ticket.id)}
@@ -254,7 +263,6 @@ function AdminTickets() {
               Delete
             </button>
           </div>
-
         </div>
       ))}
     </div>

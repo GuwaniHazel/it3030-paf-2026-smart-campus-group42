@@ -204,3 +204,141 @@ textarea:focus {
 .delete-btn:hover {
   background-color: #b91c1c;
 }
+.dashboard-page {
+  padding: 20px;
+}
+
+.dashboard-header h2 {
+  margin-bottom: 6px;
+  font-size: 32px;
+  color: #111827;
+}
+
+.dashboard-header p {
+  margin-top: 0;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.dashboard-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  border-top: 5px solid #2563eb;
+  transition: 0.25s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+}
+
+.dashboard-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dashboard-card-value {
+  font-size: 34px;
+  font-weight: 700;
+  margin-top: 12px;
+  color: #111827;
+}
+
+.dashboard-card-subtitle {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.dashboard-total {
+  border-top-color: #2563eb;
+}
+
+.dashboard-open {
+  border-top-color: #ef4444;
+}
+
+.dashboard-progress {
+  border-top-color: #f59e0b;
+}
+
+.dashboard-resolved {
+  border-top-color: #10b981;
+}
+
+.dashboard-closed {
+  border-top-color: #6b7280;
+}
+
+.chart-box {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 18px;
+  margin-top: 28px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.chart-header h3 {
+  margin: 0;
+  font-size: 22px;
+  color: #111827;
+}
+
+.chart-header p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.status-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 14px 0 18px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.open-dot {
+  background: #ef4444;
+}
+
+.progress-dot {
+  background: #f59e0b;
+}
+
+.resolved-dot {
+  background: #10b981;
+}
+
+.closed-dot {
+  background: #6b7280;
+}
