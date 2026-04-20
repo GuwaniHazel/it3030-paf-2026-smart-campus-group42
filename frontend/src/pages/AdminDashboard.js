@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
@@ -18,6 +30,7 @@ function AdminDashboard() {
     loadTickets();
   }, []);
 
+  // 📊 Stats
   const stats = useMemo(() => {
     const total = tickets.length;
     const open = tickets.filter((t) => t.status === "OPEN").length;
@@ -35,10 +48,60 @@ function AdminDashboard() {
     { name: "CLOSED", value: stats.closed }
   ];
 
+  const COLORS = ["#ef4444", "#f59e0b", "#10b981", "#6b7280"];
+
+  // 📄 PDF DOWNLOAD FUNCTION
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("Smart Campus Ticket Report", 14, 15);
+
+    doc.setFontSize(10);
+    doc.text(`Total Tickets: ${stats.total}`, 14, 22);
+
+    const tableColumn = [
+      "Title",
+      "Category",
+      "Priority",
+      "Status",
+      "Assigned To"
+    ];
+
+    const tableRows = [];
+
+    tickets.forEach((t) => {
+      const row = [
+        t.title,
+        t.category,
+        t.priority,
+        t.status,
+        t.assignedTo || "-"
+      ];
+      tableRows.push(row);
+    });
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30
+    });
+
+    doc.save("ticket-report.pdf");
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <h2>Admin Dashboard</h2>
 
+      {/* 🔥 PDF BUTTON */}
+      <div style={{ marginBottom: "20px" }}>
+        <button style={pdfBtn} onClick={downloadPDF}>
+          📄 Download Report
+        </button>
+      </div>
+
+      {/* 📊 CARDS */}
       <div style={grid}>
         <Card title="Total Tickets" value={stats.total} />
         <Card title="Open" value={stats.open} />
@@ -47,15 +110,21 @@ function AdminDashboard() {
         <Card title="Closed" value={stats.closed} />
       </div>
 
+      {/* 📈 CHART */}
       <div style={chartBox}>
         <h3>Ticket Status Overview</h3>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={250}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="value" />
+
+            <Bar dataKey="value">
+              {chartData.map((entry, index) => (
+                <Cell key={index} fill={COLORS[index]} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -72,6 +141,8 @@ function Card({ title, value }) {
   );
 }
 
+/* 🎨 STYLES */
+
 const grid = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
@@ -82,17 +153,27 @@ const grid = {
 const card = {
   background: "#ffffff",
   padding: "20px",
-  borderRadius: "10px",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+  borderRadius: "12px",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
   textAlign: "center"
 };
 
 const chartBox = {
   background: "#ffffff",
   padding: "20px",
-  borderRadius: "10px",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+  borderRadius: "12px",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
   marginTop: "20px"
+};
+
+const pdfBtn = {
+  background: "#2563eb",
+  color: "#fff",
+  border: "none",
+  padding: "10px 18px",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "bold"
 };
 
 export default AdminDashboard;
