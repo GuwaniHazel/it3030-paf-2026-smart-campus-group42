@@ -1,11 +1,16 @@
 package com.sliit.smart_campus.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sliit.smart_campus.model.TicketModel;
 import com.sliit.smart_campus.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -23,6 +28,40 @@ public class TicketController {
     public ResponseEntity<TicketModel> createTicket(@Valid @RequestBody TicketModel ticketModel) {
         TicketModel savedTicket = ticketService.createTicket(ticketModel);
         return ResponseEntity.ok(savedTicket);
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<TicketModel> createTicketWithFile(
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam("data") String data) {
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            TicketModel ticket = mapper.readValue(data, TicketModel.class);
+
+            String fileName = null;
+
+            if (file != null && !file.isEmpty()) {
+                fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                Path uploadPath = Paths.get("uploads");
+
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+
+                Path filePath = uploadPath.resolve(fileName);
+                Files.write(filePath, file.getBytes());
+            }
+
+            ticket.setAttachment(fileName);
+
+            TicketModel saved = ticketService.createTicket(ticket);
+            return ResponseEntity.ok(saved);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @GetMapping
@@ -65,6 +104,7 @@ public class TicketController {
         existing.setStudentEmail(updatedTicket.getStudentEmail());
         existing.setAssignedTo(updatedTicket.getAssignedTo());
         existing.setResolutionNote(updatedTicket.getResolutionNote());
+        existing.setAttachment(updatedTicket.getAttachment());
 
         return ResponseEntity.ok(ticketService.createTicket(existing));
     }

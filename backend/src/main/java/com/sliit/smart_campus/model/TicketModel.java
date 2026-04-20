@@ -35,6 +35,8 @@ public class TicketModel {
 
     private String location;
 
+    private String attachment;
+
     @NotBlank(message = "Preferred contact is required")
     private String preferredContact;
 
@@ -200,5 +202,12 @@ public class TicketModel {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+    public String getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(String attachment) {
+        this.attachment = attachment;
     }
 }
