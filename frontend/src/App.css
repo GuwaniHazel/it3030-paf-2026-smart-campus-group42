@@ -1,98 +1,68 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* ---------- GLOBAL ---------- */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f7fb;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
 }
 
+/* ---------- NAVBAR ---------- */
 .top-nav {
-  background: #1e3a8a;
-  color: white;
-  padding: 16px 24px;
+  height: 72px;
+  background: linear-gradient(90deg, #1d4ed8, #2563eb, #4f46e5);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  padding: 0 24px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .logo {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
+  font-weight: bold;
 }
 
 .nav-buttons {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 .nav-buttons button {
   background: white;
-  color: #1e3a8a;
+  color: #1d4ed8;
   border: none;
-  padding: 10px 14px;
+  padding: 8px 14px;
   border-radius: 8px;
-  cursor: pointer;
   font-weight: bold;
-}
-
-.nav-buttons button:hover {
-  background: #dbeafe;
-}
-
-.page-container {
-  padding: 20px;
-}
-.ticket-card {
-  background: #ffffff;
-  padding: 18px;
-  margin: 12px 0;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  cursor: pointer;
   transition: 0.2s;
 }
 
-.ticket-card:hover {
-  transform: translateY(-3px);
+.nav-buttons button:hover {
+  background: #e0e7ff;
 }
 
+/* ---------- PAGE CONTAINER ---------- */
+.page-container {
+  padding: 24px;
+}
+
+/* ---------- CARD ---------- */
+.ticket-card {
+  background: #ffffff;
+  padding: 18px;
+  margin: 14px 0;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  transition: 0.25s;
+}
+
+.ticket-card:hover {
+  transform: translateY(-4px);
+}
+
+/* ---------- HEADER ---------- */
 .ticket-header {
   display: flex;
   justify-content: space-between;
@@ -101,17 +71,18 @@ body {
 
 .ticket-title {
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 600;
 }
 
+/* ---------- STATUS BADGES ---------- */
 .ticket-status {
-  padding: 4px 10px;
-  border-radius: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
   font-size: 12px;
+  font-weight: bold;
   color: white;
 }
 
-/* status colors */
 .OPEN {
   background: #ef4444;
 }
@@ -128,11 +99,108 @@ body {
   background: #6b7280;
 }
 
+/* ---------- TEXT ---------- */
 .ticket-section {
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: 14px;
+  color: #374151;
 }
 
+/* ---------- ACTIONS ---------- */
 .ticket-actions {
-  margin-top: 10px;
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---------- BUTTON ---------- */
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 500;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+/* ---------- INPUT ---------- */
+input,
+select,
+textarea {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #2563eb;
+}
+
+/* ---------- COMMENT BOX ---------- */
+.comment-box {
+  background: #f3f4f6;
+  padding: 8px;
+  margin-top: 6px;
+  border-radius: 8px;
+}
+
+/* ---------- DASHBOARD ---------- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.dashboard-card {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+.dashboard-card h2 {
+  margin: 10px 0 0;
+  color: #1d4ed8;
+}
+
+/* ---------- CHART BOX ---------- */
+.chart-box {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  margin-top: 20px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+/* LEFT side delete button */
+.delete-container-left {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 15px;
+}
+
+/* delete button style */
+.delete-btn {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.delete-btn:hover {
+  background-color: #b91c1c;
 }

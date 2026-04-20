@@ -103,7 +103,7 @@ function AdminTickets() {
         { method: "PATCH" }
       );
 
-      await loadTickets();
+      loadTickets();
     } catch (err) {
       console.error(err);
       alert("Error assigning ticket");
@@ -124,10 +124,30 @@ function AdminTickets() {
         { method: "PATCH" }
       );
 
-      await loadTickets();
+      loadTickets();
     } catch (err) {
       console.error(err);
       alert("Error updating status");
+    }
+  };
+
+  const deleteTicket = async (ticketId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this ticket?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await fetch(`http://localhost:8080/api/tickets/${ticketId}`, {
+        method: "DELETE"
+      });
+
+      alert("Ticket deleted successfully");
+      loadTickets();
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting ticket");
     }
   };
 
@@ -136,19 +156,17 @@ function AdminTickets() {
       <h2>Admin Ticket Management</h2>
 
       {tickets.map((ticket) => (
-        <div
-          key={ticket.id}
-          style={{
-            border: "1px solid #ddd",
-            margin: "12px",
-            padding: "16px",
-            borderRadius: "10px",
-            background: "#fff",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
-          }}
-        >
-          {/* 🔥 NEW IMPORTANT FIELDS */}
-          <h3>{ticket.title}</h3>
+        <div key={ticket.id} className="ticket-card">
+          
+          {/* HEADER */}
+          <div className="ticket-header">
+            <span className="ticket-title">{ticket.title}</span>
+            <span className={`ticket-status ${ticket.status}`}>
+              {ticket.status}
+            </span>
+          </div>
+
+          {/* BASIC INFO */}
           <p><b>Ticket Code:</b> {ticket.ticketCode}</p>
           <p><b>Student Name:</b> {ticket.createdBy}</p>
           <p><b>Student ID:</b> {ticket.studentId}</p>
@@ -156,17 +174,17 @@ function AdminTickets() {
 
           <hr />
 
+          {/* DETAILS */}
           <p><b>Category:</b> {ticket.category}</p>
           <p><b>Description:</b> {ticket.description}</p>
           <p><b>Priority:</b> {ticket.priority}</p>
           <p><b>Status:</b> {ticket.status}</p>
           <p><b>Assigned To:</b> {ticket.assignedTo || "Not assigned"}</p>
-
           <p><b>Location:</b> {ticket.location || "-"}</p>
           <p><b>Resource:</b> {ticket.resourceName || "-"}</p>
 
           {/* ASSIGN */}
-          <div style={{ marginTop: "10px" }}>
+          <div className="ticket-actions">
             <select
               value={assignValues[ticket.id] || ""}
               onChange={(e) => handleAssignChange(ticket.id, e.target.value)}
@@ -177,13 +195,13 @@ function AdminTickets() {
               <option value="Technician2">Technician2</option>
             </select>
 
-            <button onClick={() => assignTicket(ticket.id)} style={{ marginLeft: "8px" }}>
+            <button onClick={() => assignTicket(ticket.id)}>
               Assign
             </button>
           </div>
 
           {/* STATUS */}
-          <div style={{ marginTop: "10px" }}>
+          <div className="ticket-actions">
             <select
               value={statusValues[ticket.id] || ""}
               onChange={(e) => handleStatusChange(ticket.id, e.target.value)}
@@ -195,48 +213,48 @@ function AdminTickets() {
               <option value="CLOSED">CLOSED</option>
             </select>
 
-            <button onClick={() => updateStatus(ticket.id)} style={{ marginLeft: "8px" }}>
+            <button onClick={() => updateStatus(ticket.id)}>
               Update Status
             </button>
           </div>
 
           {/* COMMENTS */}
-          <div style={{ marginTop: "10px" }}>
+          <div className="ticket-actions">
             <button onClick={() => fetchComments(ticket.id)}>
               Load Comments
             </button>
           </div>
 
-          <div style={{ marginTop: "10px" }}>
-            {comments[ticket.id] &&
-              comments[ticket.id].map((c) => (
-                <div
-                  key={c.id}
-                  style={{
-                    background: "#f4f4f4",
-                    padding: "8px",
-                    marginTop: "5px",
-                    borderRadius: "5px"
-                  }}
-                >
-                  💬 <b>{c.user}</b>: {c.message}
-                </div>
-              ))}
-          </div>
+          {comments[ticket.id] &&
+            comments[ticket.id].map((c) => (
+              <div key={c.id} className="comment-box">
+                💬 <b>{c.user}</b>: {c.message}
+              </div>
+            ))}
 
           {/* REPLY */}
-          <div style={{ marginTop: "10px" }}>
+          <div className="ticket-actions">
             <input
               type="text"
               placeholder="Write admin reply..."
               value={newComments[ticket.id] || ""}
               onChange={(e) => handleCommentChange(ticket.id, e.target.value)}
-              style={{ padding: "6px", borderRadius: "6px" }}
             />
-            <button onClick={() => addComment(ticket.id)} style={{ marginLeft: "8px" }}>
+            <button onClick={() => addComment(ticket.id)}>
               Reply
             </button>
           </div>
+
+          {/* 🔥 DELETE BUTTON (BOTTOM RIGHT) */}
+          <div className="delete-container-left">
+            <button
+              onClick={() => deleteTicket(ticket.id)}
+              className="delete-btn"
+            >
+              Delete
+            </button>
+          </div>
+
         </div>
       ))}
     </div>
