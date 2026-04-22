@@ -13,7 +13,7 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-function AdminDashboard() {
+function TicketDashboard() {
   const [tickets, setTickets] = useState([]);
 
   const loadTickets = async () => {
@@ -32,13 +32,13 @@ function AdminDashboard() {
 
   // 📊 Stats
   const stats = useMemo(() => {
-    const total = tickets.length;
-    const open = tickets.filter((t) => t.status === "OPEN").length;
-    const inProgress = tickets.filter((t) => t.status === "IN_PROGRESS").length;
-    const resolved = tickets.filter((t) => t.status === "RESOLVED").length;
-    const closed = tickets.filter((t) => t.status === "CLOSED").length;
-
-    return { total, open, inProgress, resolved, closed };
+    return {
+      total: tickets.length,
+      open: tickets.filter((t) => t.status === "OPEN").length,
+      inProgress: tickets.filter((t) => t.status === "IN_PROGRESS").length,
+      resolved: tickets.filter((t) => t.status === "RESOLVED").length,
+      closed: tickets.filter((t) => t.status === "CLOSED").length
+    };
   }, [tickets]);
 
   const chartData = [
@@ -50,7 +50,7 @@ function AdminDashboard() {
 
   const COLORS = ["#ef4444", "#f59e0b", "#10b981", "#6b7280"];
 
-  // 📄 PDF DOWNLOAD FUNCTION
+  // 📄 PDF DOWNLOAD
   const downloadPDF = () => {
     const doc = new jsPDF();
 
@@ -68,18 +68,13 @@ function AdminDashboard() {
       "Assigned To"
     ];
 
-    const tableRows = [];
-
-    tickets.forEach((t) => {
-      const row = [
-        t.title,
-        t.category,
-        t.priority,
-        t.status,
-        t.assignedTo || "-"
-      ];
-      tableRows.push(row);
-    });
+    const tableRows = tickets.map((t) => [
+      t.title,
+      t.category,
+      t.priority,
+      t.status,
+      t.assignedTo || "-"
+    ]);
 
     autoTable(doc, {
       head: [tableColumn],
@@ -92,16 +87,16 @@ function AdminDashboard() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>Admin Dashboard</h2>
+      <h2>🎫 Ticket Dashboard</h2>
 
-      {/* 🔥 PDF BUTTON */}
+      {/* PDF BUTTON */}
       <div style={{ marginBottom: "20px" }}>
         <button style={pdfBtn} onClick={downloadPDF}>
           📄 Download Report
         </button>
       </div>
 
-      {/* 📊 CARDS */}
+      {/* CARDS */}
       <div style={grid}>
         <Card title="Total Tickets" value={stats.total} />
         <Card title="Open" value={stats.open} />
@@ -110,7 +105,7 @@ function AdminDashboard() {
         <Card title="Closed" value={stats.closed} />
       </div>
 
-      {/* 📈 CHART */}
+      {/* CHART */}
       <div style={chartBox}>
         <h3>Ticket Status Overview</h3>
         <ResponsiveContainer width="100%" height={250}>
@@ -141,7 +136,7 @@ function Card({ title, value }) {
   );
 }
 
-/* 🎨 STYLES */
+/* STYLES */
 
 const grid = {
   display: "grid",
@@ -176,4 +171,4 @@ const pdfBtn = {
   fontWeight: "bold"
 };
 
-export default AdminDashboard;
+export default TicketDashboard;

@@ -2,31 +2,36 @@ import { useState } from "react";
 import CreateTicket from "./pages/CreateTicket";
 import MyTickets from "./pages/MyTickets";
 import AdminTickets from "./pages/AdminTickets";
-import AdminDashboard from "./pages/AdminDashboard";
-import "./App.css";
+import TicketDashboard from "./pages/TicketDashboard";
 
 function App() {
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage] = useState("create");
 
   return (
-    <div>
-      <div className="top-nav">
-        <h2 className="logo">Smart Campus Ticket System</h2>
+    <div style={{ padding: "20px" }}>
+      <button onClick={() => setPage("create")}>Create Ticket</button>
 
-        <div className="nav-buttons">
-          <button onClick={() => setPage("dashboard")}>Dashboard</button>
-          <button onClick={() => setPage("create")}>Create Ticket</button>
-          <button onClick={() => setPage("list")}>My Tickets</button>
-          <button onClick={() => setPage("admin")}>Admin Tickets</button>
-        </div>
-      </div>
+      <button onClick={() => setPage("list")} style={{ marginLeft: "10px" }}>
+        My Tickets
+      </button>
 
-      <div className="page-container">
-        {page === "dashboard" && <AdminDashboard />}
-        {page === "create" && <CreateTicket onSuccess={() => setPage("list")} />}
-        {page === "list" && <MyTickets />}
-        {page === "admin" && <AdminTickets />}
-      </div>
+      <button onClick={() => setPage("admin")} style={{ marginLeft: "10px" }}>
+        Admin Tickets
+      </button>
+
+      {/* 🔥 ADD THIS */}
+      <button onClick={() => setPage("dashboard")} style={{ marginLeft: "10px" }}>
+        Dashboard
+      </button>
+
+      <hr />
+
+      {page === "create" && <CreateTicket />}
+      {page === "list" && <MyTickets />}
+      {page === "admin" && <AdminTickets />}
+
+      {/* 🔥 THIS LINE CORRECT */}
+      {page === "dashboard" && <TicketDashboard />}
     </div>
   );
 }
