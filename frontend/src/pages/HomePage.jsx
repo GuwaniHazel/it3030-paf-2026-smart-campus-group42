@@ -11,8 +11,6 @@ import {
   FaBook,
   FaBuilding,
   FaCalendarCheck,
-  FaChevronLeft,
-  FaChevronRight,
   FaCheckCircle,
   FaClipboardList,
   FaShieldAlt,
@@ -227,16 +225,8 @@ const HomePage = ({ navigate }) => {
     navigate?.(route);
   };
 
-  const goToSlide = (index) => {
-    setActiveHeroSlide(index);
-  };
-
   const goToNextSlide = () => {
     setActiveHeroSlide((previous) => (previous + 1) % HERO_SLIDES.length);
-  };
-
-  const goToPreviousSlide = () => {
-    setActiveHeroSlide((previous) => (previous - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
   };
 
   const handleTouchStart = (event) => {
@@ -265,7 +255,7 @@ const HomePage = ({ navigate }) => {
     if (deltaX > minSwipeDistance) {
       goToNextSlide();
     } else if (deltaX < -minSwipeDistance) {
-      goToPreviousSlide();
+      setActiveHeroSlide((previous) => (previous - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
     }
 
     setTouchStartX(null);
@@ -317,24 +307,6 @@ const HomePage = ({ navigate }) => {
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={goToPreviousSlide}
-          className="absolute left-3 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-black/25 text-white backdrop-blur transition hover:bg-black/45 sm:left-5"
-          aria-label="Previous hero image"
-        >
-          <FaChevronLeft />
-        </button>
-
-        <button
-          type="button"
-          onClick={goToNextSlide}
-          className="absolute right-3 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-black/25 text-white backdrop-blur transition hover:bg-black/45 sm:right-5"
-          aria-label="Next hero image"
-        >
-          <FaChevronRight />
-        </button>
-
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
           <div className="max-w-3xl" data-aos="fade-up">
             <p className="mb-4 inline-flex items-center rounded-full border border-cyan-300/50 bg-cyan-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100">
@@ -365,20 +337,6 @@ const HomePage = ({ navigate }) => {
               </button>
             </div>
           </div>
-        </div>
-
-        <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
-          {HERO_SLIDES.map((_, index) => (
-            <button
-              key={`hero-dot-${index}`}
-              type="button"
-              onClick={() => goToSlide(index)}
-              className={`h-2.5 rounded-full transition-all duration-300 ${
-                activeHeroSlide === index ? "w-7 bg-white" : "w-2.5 bg-white/50 hover:bg-white/80"
-              }`}
-              aria-label={`Go to hero slide ${index + 1}`}
-            />
-          ))}
         </div>
       </section>
 
