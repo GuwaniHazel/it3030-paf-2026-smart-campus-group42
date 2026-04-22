@@ -11,6 +11,8 @@ import {
   FaBook,
   FaBuilding,
   FaCalendarCheck,
+  FaChevronLeft,
+  FaChevronRight,
   FaCheckCircle,
   FaClipboardList,
   FaShieldAlt,
@@ -21,8 +23,12 @@ import {
 import "swiper/css";
 import "swiper/css/pagination";
 
-const HERO_IMAGE_URL =
-  "https://images.unsplash.com/photo-1562774053-701939374585?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80";
+const HERO_SLIDES = [
+  "https://images.unsplash.com/photo-1562774053-701939374585?w=1920&auto=format",
+  "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&auto=format",
+  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1920&auto=format",
+  "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1920&auto=format",
+];
 const CTA_BG_URL =
   "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&auto=format";
 
@@ -169,6 +175,10 @@ const HomePage = ({ navigate }) => {
   const [typedTitle, setTypedTitle] = useState("");
   const [countdown, setCountdown] = useState(48 * 60 * 60);
   const [loadedImages, setLoadedImages] = useState({});
+  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
+  const [isHeroHovered, setIsHeroHovered] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
 
   useEffect(() => {
     AOS.init({ duration: 700, once: true, easing: "ease-out-cubic" });
@@ -194,6 +204,18 @@ const HomePage = ({ navigate }) => {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (isHeroHovered) {
+      return undefined;
+    }
+
+    const sliderTimer = window.setInterval(() => {
+      setActiveHeroSlide((previous) => (previous + 1) % HERO_SLIDES.length);
+    }, 5000);
+
+    return () => window.clearInterval(sliderTimer);
+  }, [isHeroHovered]);
+
   const countdownLabel = useMemo(() => {
     const hours = String(Math.floor(countdown / 3600)).padStart(2, "0");
     const minutes = String(Math.floor((countdown % 3600) / 60)).padStart(2, "0");
@@ -205,6 +227,51 @@ const HomePage = ({ navigate }) => {
     navigate?.(route);
   };
 
+  const goToSlide = (index) => {
+    setActiveHeroSlide(index);
+  };
+
+  const goToNextSlide = () => {
+    setActiveHeroSlide((previous) => (previous + 1) % HERO_SLIDES.length);
+  };
+
+  const goToPreviousSlide = () => {
+    setActiveHeroSlide((previous) => (previous - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+  };
+
+  const handleTouchStart = (event) => {
+    const startX = event.changedTouches?.[0]?.clientX;
+    if (typeof startX === "number") {
+      setTouchStartX(startX);
+      setTouchEndX(startX);
+    }
+  };
+
+  const handleTouchMove = (event) => {
+    const currentX = event.changedTouches?.[0]?.clientX;
+    if (typeof currentX === "number") {
+      setTouchEndX(currentX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === null || touchEndX === null) {
+      return;
+    }
+
+    const deltaX = touchStartX - touchEndX;
+    const minSwipeDistance = 40;
+
+    if (deltaX > minSwipeDistance) {
+      goToNextSlide();
+    } else if (deltaX < -minSwipeDistance) {
+      goToPreviousSlide();
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -214,12 +281,26 @@ const HomePage = ({ navigate }) => {
     >
       <section
         className="relative isolate min-h-[78vh] overflow-hidden"
-        style={{
-          backgroundImage: `linear-gradient(120deg, rgba(8,47,73,0.82), rgba(15,23,42,0.72)), url(${HERO_IMAGE_URL})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        onMouseEnter={() => setIsHeroHovered(true)}
+        onMouseLeave={() => setIsHeroHovered(false)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
+        <div className="absolute inset-0">
+          {HERO_SLIDES.map((image, index) => (
+            <div
+              key={image}
+              className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
+                activeHeroSlide === index ? "opacity-100" : "opacity-0"
+              }`}
+              style={{ backgroundImage: `url(${image})` }}
+              aria-hidden={activeHeroSlide !== index}
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/75 via-cyan-950/40 to-slate-950/70" />
+
         <div className="absolute inset-0">
           {[...Array(8)].map((_, i) => (
             <span
@@ -235,6 +316,24 @@ const HomePage = ({ navigate }) => {
             />
           ))}
         </div>
+
+        <button
+          type="button"
+          onClick={goToPreviousSlide}
+          className="absolute left-3 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-black/25 text-white backdrop-blur transition hover:bg-black/45 sm:left-5"
+          aria-label="Previous hero image"
+        >
+          <FaChevronLeft />
+        </button>
+
+        <button
+          type="button"
+          onClick={goToNextSlide}
+          className="absolute right-3 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-black/25 text-white backdrop-blur transition hover:bg-black/45 sm:right-5"
+          aria-label="Next hero image"
+        >
+          <FaChevronRight />
+        </button>
 
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
           <div className="max-w-3xl" data-aos="fade-up">
@@ -266,6 +365,20 @@ const HomePage = ({ navigate }) => {
               </button>
             </div>
           </div>
+        </div>
+
+        <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
+          {HERO_SLIDES.map((_, index) => (
+            <button
+              key={`hero-dot-${index}`}
+              type="button"
+              onClick={() => goToSlide(index)}
+              className={`h-2.5 rounded-full transition-all duration-300 ${
+                activeHeroSlide === index ? "w-7 bg-white" : "w-2.5 bg-white/50 hover:bg-white/80"
+              }`}
+              aria-label={`Go to hero slide ${index + 1}`}
+            />
+          ))}
         </div>
       </section>
 
