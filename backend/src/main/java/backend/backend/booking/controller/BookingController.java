@@ -1,49 +1,55 @@
 package backend.backend.booking.controller;
 
 import backend.backend.booking.model.Booking;
-import backend.backend.booking.model.BookingStatus;
-import backend.backend.booking.repository.BookingRepository;
+import backend.backend.booking.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
- * BookingController – Module B: Booking Management (Day 2 – Basic Version)
+ * BookingController – Module B: Booking Management (Day 3 – Service Layer)
  *
- * This REST controller handles HTTP requests for bookings.
- * It is the entry point for all /api/bookings requests.
+ * WHY IS THE CONTROLLER NOW THIN?
+ * ─────────────────────────────────────────────────────
+ * The Controller's ONLY job is to:
+ *   1. Receive the HTTP request.
+ *   2. Pass the data to the Service layer.
+ *   3. Return the appropriate HTTP response.
  *
- * current structure (Day 2 - temporary):
- *   HTTP Request → Controller → Repository → Database
+ * ALL business logic (validation, rules) lives in BookingService.
+ * The Controller does NOT know HOW the booking is saved — it just delegates.
  *
- * Future structure (Day 3+):
+ * Clean Architecture Flow (Day 3):
  *   HTTP Request → Controller → Service → Repository → Database
+ * ─────────────────────────────────────────────────────
  *
- * NOTE: No business logic, validation, or conflict checking yet.
- *       These will be added in Day 3 via the Service layer.
+ * @RestController  — Returns JSON automatically for every method.
+ * @RequestMapping  — Base URL prefix for all endpoints in this class.
+ * @CrossOrigin     — Allows the React frontend (different port) to call this API.
  */
-@RestController                     // Combines @Controller + @ResponseBody: returns JSON automatically
-@RequestMapping("/api/bookings")    // All endpoints in this class start with /api/bookings
-@CrossOrigin(origins = "*")         // Allows requests from any origin (useful during React frontend dev)
+@RestController
+@RequestMapping("/api/bookings")
+@CrossOrigin(origins = "*")
 public class BookingController {
 
     // ─────────────────────────────────────────────
     // DEPENDENCY INJECTION
     // ─────────────────────────────────────────────
 
-    private final BookingRepository bookingRepository;
+    // We now depend on BookingService, NOT BookingRepository.
+    // The Controller should never reach past the Service layer.
+    private final BookingService bookingService;
 
     /**
-     * Constructor injection (preferred over @Autowired on field).
-     * Spring automatically provides the BookingRepository bean here.
+     * Constructor injection — Spring provides the BookingService bean automatically.
+     * This makes the controller easy to unit-test by passing a mock service.
      */
     @Autowired
-    public BookingController(BookingRepository bookingRepository) {
-        this.bookingRepository = bookingRepository;
+    public BookingController(BookingService bookingService) {
+        this.bookingService = bookingService;
     }
 
     // ─────────────────────────────────────────────
@@ -52,14 +58,16 @@ public class BookingController {
     // ─────────────────────────────────────────────
 
     /**
-     * Creates a new booking and saves it to the database.
+     * Creates a new booking.
      *
-     * @RequestBody: Spring reads the JSON body from the HTTP request
-     *               and automatically converts it into a Booking object.
+     * The controller receives the JSON body and passes it directly
+     * to the service. Validation happens inside the service — not here.
      *
      * HTTP Method : POST
      * URL         : http://localhost:8080/api/bookings
-     * Status Code : 201 Created (on success)
+     *
+     * Success     : 201 Created  → returns the saved Booking as JSON
+     * Failure     : 400 Bad Request → if validation fails (e.g., bad times)
      *
      * Example Request Body (JSON):
      * {
@@ -69,24 +77,24 @@ public class BookingController {
      *   "startTime": "09:00:00",
      *   "endTime": "11:00:00",
      *   "purpose": "Group study session",
-     *   "attendees": 10,
-     *   "status": "PENDING"
+     *   "attendees": 10
      * }
      */
-    @PostMapping                            // Handles HTTP POST requests to /api/bookings
-    public ResponseEntity<Booking> createBooking(@RequestBody Booking booking) {
+    @PostMapping
+    public ResponseEntity<?> createBooking(@RequestBody Booking booking) {
+        try {
+            // Delegate ALL logic to the service layer.
+            // The service validates and saves — the controller just returns the result.
+            Booking savedBooking = bookingService.createBooking(booking);
 
-        // Temporarily set status to PENDING if not provided in the request body.
-        // In Day 3, this will be enforced in the Service layer.
-        if (booking.getStatus() == null) {
-            booking.setStatus(BookingStatus.PENDING);
+            // HTTP 201 Created — booking was successfully saved.
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedBooking);
+
+        } catch (IllegalArgumentException e) {
+            // IllegalArgumentException is thrown by the service when validation fails.
+            // Return HTTP 400 Bad Request with the error message so the client knows what went wrong.
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        // Save the booking to MySQL via JPA (also triggers @PrePersist → sets createdAt)
-        Booking savedBooking = bookingRepository.save(booking);
-
-        // Return the saved booking (with its generated id and createdAt) with HTTP 201 Created
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedBooking);
     }
 
     // ─────────────────────────────────────────────
@@ -95,7 +103,7 @@ public class BookingController {
     // ─────────────────────────────────────────────
 
     /**
-     * Retrieves all bookings from the database.
+     * Retrieves all bookings.
      *
      * HTTP Method : GET
      * URL         : http://localhost:8080/api/bookings
@@ -103,13 +111,12 @@ public class BookingController {
      *
      * Use case    : Admin dashboard — view every booking in the system.
      */
-    @GetMapping                             // Handles HTTP GET requests to /api/bookings
+    @GetMapping
     public ResponseEntity<List<Booking>> getAllBookings() {
+        // Delegate to service — controller does not call the repository directly.
+        List<Booking> bookings = bookingService.getAllBookings();
 
-        // findAll() is provided by JpaRepository — no SQL needed
-        List<Booking> bookings = bookingRepository.findAll();
-
-        // Return the list with HTTP 200 OK
+        // HTTP 200 OK with the list of bookings as JSON.
         return ResponseEntity.ok(bookings);
     }
 
@@ -121,26 +128,28 @@ public class BookingController {
     /**
      * Retrieves a single booking by its ID.
      *
-     * @PathVariable: Extracts the {id} from the URL (e.g., /api/bookings/3 → id = 3)
+     * @PathVariable extracts the {id} value from the URL path.
+     * Example: GET /api/bookings/3 → id = 3
      *
      * HTTP Method : GET
      * URL         : http://localhost:8080/api/bookings/{id}
-     * Status Code : 200 OK (found) | 404 Not Found (not found)
      *
-     * Example     : GET http://localhost:8080/api/bookings/1
+     * Success     : 200 OK       → returns the Booking as JSON
+     * Failure     : 404 Not Found → if no booking exists with that id
      */
-    @GetMapping("/{id}")                        // Handles GET /api/bookings/{id}
-    public ResponseEntity<Booking> getBookingById(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getBookingById(@PathVariable Long id) {
+        try {
+            // Service finds the booking or throws RuntimeException if not found.
+            Booking booking = bookingService.getBookingById(id);
 
-        // findById() returns an Optional<Booking> — it might or might not exist
-        Optional<Booking> booking = bookingRepository.findById(id);
+            // HTTP 200 OK — booking found and returned.
+            return ResponseEntity.ok(booking);
 
-        if (booking.isPresent()) {
-            // Booking found → return it with HTTP 200 OK
-            return ResponseEntity.ok(booking.get());
-        } else {
-            // Booking not found → return HTTP 404 Not Found (no body needed)
-            return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            // RuntimeException is thrown by the service when the booking does not exist.
+            // Return HTTP 404 Not Found with the error message.
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }
