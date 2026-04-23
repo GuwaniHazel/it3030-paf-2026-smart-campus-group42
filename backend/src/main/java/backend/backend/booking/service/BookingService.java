@@ -11,30 +11,17 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * BookingService – Module B: Booking Management (Day 4 – Conflict Detection)
+ * BookingService – Module B: Booking Management (Day 5 – Approve / Reject)
  *
- * WHY DO WE NEED A SERVICE LAYER?
- * ─────────────────────────────────────────────────────
- * In Day 2 the Controller talked directly to the Repository:
- *   Controller → Repository → Database
- *
- * This is problematic because:
- *   1. Business logic (validation, rules) ends up mixed with HTTP handling.
- *   2. The Controller becomes bloated and hard to test/maintain.
- *   3. Code cannot be reused easily across different callers.
- *
- * The Service layer fixes this by:
- *   - Keeping the Controller thin (only handles HTTP concerns).
- *   - Centralising ALL business logic here.
- *   - Making the code easy to unit-test independently.
- *
- * Clean Architecture Flow (Day 4):
+ * Layered architecture flow:
  *   HTTP Request → Controller → Service → Repository → Database
- * ─────────────────────────────────────────────────────
  *
- * @Service – marks this class as a Spring-managed service bean.
- *            Spring will automatically create one instance and inject it
- *            wherever it is needed (e.g., BookingController).
+ * This service now covers:
+ *   Day 3 – createBooking, getAllBookings, getBookingById (basic CRUD + validation)
+ *   Day 4 – hasConflict (conflict detection before saving)
+ *   Day 5 – approveBooking, rejectBooking (admin approval workflow)  ← NEW
+ *
+ * @Service – tells Spring to create and manage one instance of this class.
  */
 @Service
 public class BookingService {
@@ -48,10 +35,6 @@ public class BookingService {
     /**
      * Constructor injection – the recommended way to inject dependencies in Spring.
      * Spring automatically provides the BookingRepository bean when creating this service.
-     *
-     * Constructor injection is preferred over @Autowired on fields because:
-     *   - It makes dependencies explicit and visible.
-     *   - It allows the class to be easily unit-tested without a Spring context.
      */
     @Autowired
     public BookingService(BookingRepository bookingRepository) {
@@ -59,28 +42,25 @@ public class BookingService {
     }
 
     // ─────────────────────────────────────────────
-    // METHOD 1: CREATE BOOKING
+    // METHOD 1: CREATE BOOKING  (Day 3 + Day 4)
     // ─────────────────────────────────────────────
 
     /**
      * Validates and saves a new booking to the database.
      *
-     * Business Rules enforced here (NOT in the controller):
+     * Business Rules:
      *   1. startTime must be before endTime.
      *   2. attendees must be greater than 0.
-     *   3. [DAY 4] No time conflict with an existing APPROVED booking
-     *              for the same resource on the same date.
+     *   3. No time conflict with an existing APPROVED booking (Day 4).
      *   4. Status is always forced to PENDING on creation.
      *
      * @param booking  The Booking object received from the controller
-     * @return         The saved Booking (with generated id and createdAt timestamp)
+     * @return         The saved Booking (with generated id and createdAt)
      * @throws IllegalArgumentException if validation fails or a conflict is detected
      */
     public Booking createBooking(Booking booking) {
 
         // ── VALIDATION 1: Time range check ──────────────────────────────
-        // startTime must be strictly before endTime.
-        // Example: 09:00 → 11:00 is valid; 11:00 → 09:00 is NOT valid.
         if (booking.getStartTime() == null || booking.getEndTime() == null) {
             throw new IllegalArgumentException("Start time and end time are required.");
         }
@@ -94,7 +74,6 @@ public class BookingService {
         }
 
         // ── VALIDATION 2: Attendees check ────────────────────────────────
-        // A booking must have at least 1 attendee – 0 or negative makes no sense.
         if (booking.getAttendees() <= 0) {
             throw new IllegalArgumentException(
                 "Number of attendees must be greater than 0. " +
@@ -102,12 +81,7 @@ public class BookingService {
             );
         }
 
-        // ── DAY 4 – VALIDATION 3: Conflict Detection ─────────────────────
-        // Before saving, check whether the requested time slot clashes with
-        // any already-APPROVED booking for the same resource on the same date.
-        //
-        // If hasConflict() returns true → refuse to save and throw an error.
-        // The controller will catch this and return HTTP 400 Bad Request.
+        // ── VALIDATION 3: Conflict Detection (Day 4) ─────────────────────
         if (hasConflict(
                 booking.getResourceId(),
                 booking.getDate(),
@@ -119,55 +93,38 @@ public class BookingService {
             );
         }
 
-        // ── BUSINESS RULE: Force status to PENDING ───────────────────────
-        // Regardless of what the client sends, every new booking starts as PENDING.
-        // Only an admin can change the status later (approve/reject logic).
+        // ── Force status to PENDING ──────────────────────────────────────
         booking.setStatus(BookingStatus.PENDING);
 
-        // ── SAVE to database ─────────────────────────────────────────────
-        // JPA will trigger @PrePersist → sets createdAt automatically.
+        // ── Save and return ──────────────────────────────────────────────
         return bookingRepository.save(booking);
     }
 
     // ─────────────────────────────────────────────
-    // METHOD 2: GET ALL BOOKINGS
+    // METHOD 2: GET ALL BOOKINGS  (Day 3)
     // ─────────────────────────────────────────────
 
     /**
      * Retrieves all bookings from the database.
      *
-     * No additional business logic needed – just delegate to the repository.
-     * Keeping this in the service (instead of calling the repo directly from
-     * the controller) maintains a clean, consistent architecture.
-     *
      * @return List of all Booking records (empty list if none exist)
      */
     public List<Booking> getAllBookings() {
-        // findAll() is provided by JpaRepository – Spring Data generates the SQL.
         return bookingRepository.findAll();
     }
 
     // ─────────────────────────────────────────────
-    // METHOD 3: GET BOOKING BY ID
+    // METHOD 3: GET BOOKING BY ID  (Day 3)
     // ─────────────────────────────────────────────
 
     /**
-     * Retrieves a single booking by its primary key (id).
-     *
-     * Exception Handling:
-     *   If no booking exists with the given id, we throw a RuntimeException
-     *   with a descriptive message. The Controller catches it and returns
-     *   HTTP 404 Not Found.
+     * Retrieves a single booking by its primary key.
      *
      * @param id  The primary key of the booking to retrieve
      * @return    The Booking object if found
      * @throws RuntimeException if no booking found with the given id
      */
     public Booking getBookingById(Long id) {
-        // findById() returns Optional<Booking>.
-        // orElseThrow() unwraps it:
-        //   → If present : returns the Booking.
-        //   → If empty   : throws RuntimeException with our custom message.
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(
                     "Booking not found with id: " + id
@@ -175,72 +132,111 @@ public class BookingService {
     }
 
     // ─────────────────────────────────────────────
-    // METHOD 4: CONFLICT DETECTION  [DAY 4 – CORE FEATURE]
+    // METHOD 4: CONFLICT DETECTION  (Day 4)
     // ─────────────────────────────────────────────
 
     /**
      * Checks whether a proposed time slot conflicts with any existing APPROVED
      * booking for the same resource on the same date.
      *
-     * ┌──────────────────────────────────────────────────────────────────┐
-     * │  OVERLAP RULE  (industry-standard interval overlap formula)      │
-     * │                                                                  │
-     * │  Two time intervals overlap when BOTH conditions are true:       │
-     * │                                                                  │
-     * │    newStartTime  <  existingEndTime                              │
-     * │    newEndTime    >  existingStartTime                            │
-     * │                                                                  │
-     * │  Visual examples:                                                │
-     * │    Existing :  [09:00 ──────────── 11:00]                       │
-     * │    New A    :        [10:00 ────────────── 12:00]  ← CONFLICT   │
-     * │    New B    :  [08:00 ─── 09:00]                   ← No conflict│
-     * │    New C    :                      [11:00 ── 13:00]← No conflict│
-     * └──────────────────────────────────────────────────────────────────┘
+     * Overlap Rule (must both be true for a conflict):
+     *   newStartTime < existingEndTime
+     *   AND
+     *   newEndTime   > existingStartTime
      *
-     * @param resourceId  The campus resource being requested (e.g., room ID)
-     * @param date        The date of the proposed booking
-     * @param startTime   The proposed start time
-     * @param endTime     The proposed end time
-     * @return            true  → conflict found, caller must NOT save the booking
-     *                    false → no conflict, safe to proceed
+     * @return true if a conflict exists, false if the slot is free
      */
     public boolean hasConflict(Long resourceId, LocalDate date,
                                LocalTime startTime, LocalTime endTime) {
 
-        // STEP 1 – Fetch only APPROVED bookings for this resource on this date.
-        //
-        // We call the custom repository method added in Day 3:
-        //   findByResourceIdAndDateAndStatus(resourceId, date, BookingStatus.APPROVED)
-        //
-        // WHY only APPROVED?
-        //   • PENDING  – not yet confirmed; should not block other requests.
-        //   • REJECTED – booking was refused; slot is free again.
-        //   • CANCELLED – user cancelled; slot is free again.
-        //   • APPROVED  – slot is definitively reserved → must check against these.
+        // Fetch only APPROVED bookings – PENDING/REJECTED/CANCELLED do not block the slot.
         List<Booking> approvedBookings = bookingRepository
                 .findByResourceIdAndDateAndStatus(resourceId, date, BookingStatus.APPROVED);
 
-        // STEP 2 – Apply the overlap rule to each approved booking.
         for (Booking existing : approvedBookings) {
-
-            // OVERLAP CHECK:
-            //   Condition A: newStartTime is BEFORE the existing booking ends
-            //                → the new booking "reaches into" the existing slot.
-            //   Condition B: newEndTime is AFTER the existing booking starts
-            //                → the new booking "starts before" the existing slot ends.
-            //
-            // Both conditions must be true simultaneously for an overlap to exist.
             boolean overlaps =
-                    startTime.isBefore(existing.getEndTime())   // Condition A
-                 && endTime.isAfter(existing.getStartTime());   // Condition B
+                    startTime.isBefore(existing.getEndTime())
+                 && endTime.isAfter(existing.getStartTime());
 
             if (overlaps) {
-                // At least one conflict found – return immediately.
-                return true;  // ← CONFLICT DETECTED
+                return true;  // Conflict detected
             }
         }
 
-        // STEP 3 – No conflict found after checking all approved bookings.
-        return false;  // ← SAFE TO BOOK
+        return false;  // No conflict
+    }
+
+    // ─────────────────────────────────────────────
+    // METHOD 5: APPROVE BOOKING  [DAY 5 – NEW]
+    // ─────────────────────────────────────────────
+
+    /**
+     * Approves a booking by setting its status to APPROVED.
+     *
+     * Steps:
+     *   1. Find the booking by id (throws exception if not found).
+     *   2. Change the status from PENDING → APPROVED.
+     *   3. Save the updated booking back to the database.
+     *   4. Return the updated booking.
+     *
+     * Called by: PUT /api/bookings/{id}/approve
+     *
+     * @param id  The ID of the booking to approve
+     * @return    The updated Booking with status = APPROVED
+     * @throws RuntimeException if no booking found with the given id
+     */
+    public Booking approveBooking(Long id) {
+
+        // STEP 1: Find the booking in the database.
+        // If it does not exist, getBookingById() throws a RuntimeException automatically.
+        Booking booking = getBookingById(id);
+
+        // STEP 2: Update the status to APPROVED.
+        // This means the admin has confirmed the resource is available for this slot.
+        booking.setStatus(BookingStatus.APPROVED);
+
+        // STEP 3: Save the updated booking.
+        // JPA will run an UPDATE SQL statement (not INSERT, because the id already exists).
+        return bookingRepository.save(booking);
+    }
+
+    // ─────────────────────────────────────────────
+    // METHOD 6: REJECT BOOKING  [DAY 5 – NEW]
+    // ─────────────────────────────────────────────
+
+    /**
+     * Rejects a booking by setting its status to REJECTED and storing the reason.
+     *
+     * Steps:
+     *   1. Find the booking by id (throws exception if not found).
+     *   2. Change the status from PENDING → REJECTED.
+     *   3. Store the rejection reason provided by the admin.
+     *   4. Save the updated booking back to the database.
+     *   5. Return the updated booking.
+     *
+     * Called by: PUT /api/bookings/{id}/reject
+     *
+     * @param id     The ID of the booking to reject
+     * @param reason The reason for rejection (e.g., "Resource unavailable")
+     * @return       The updated Booking with status = REJECTED and the reason stored
+     * @throws RuntimeException if no booking found with the given id
+     */
+    public Booking rejectBooking(Long id, String reason) {
+
+        // STEP 1: Find the booking in the database.
+        // If not found, getBookingById() throws RuntimeException → controller returns 404.
+        Booking booking = getBookingById(id);
+
+        // STEP 2: Update the status to REJECTED.
+        // The admin has decided this booking cannot be accommodated.
+        booking.setStatus(BookingStatus.REJECTED);
+
+        // STEP 3: Store the rejection reason.
+        // This is saved to the 'rejection_reason' column in the database.
+        // The user can later read this to understand why their booking was refused.
+        booking.setRejectionReason(reason);
+
+        // STEP 4: Save and return the updated booking.
+        return bookingRepository.save(booking);
     }
 }
