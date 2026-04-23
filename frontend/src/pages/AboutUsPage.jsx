@@ -27,22 +27,22 @@ const CTA_BG_URL =
 const teamMembers = [
   {
     name: "Guwani Hathurusinghe",
-    role: "Project Lead - Module A",
+    role: "Facilities & Assets Catalogue",
     image: "https://randomuser.me/api/portraits/women/1.jpg",
   },
   {
     name: "Amanda ",
-    role: "Backend Lead - Module B",
+    role: "Booking Management",
     image: "https://randomuser.me/api/portraits/men/1.jpg",
   },
   {
     name: "Anuja",
-    role: "UI/UX Designer - Module C",
+    role: "Incident Tickets",
     image: "https://randomuser.me/api/portraits/women/2.jpg",
   },
   {
     name: "Midunesh",
-    role: "DevOps Lead - Module D",
+    role: "Notification",
     image: "https://randomuser.me/api/portraits/men/2.jpg",
   },
 ];
