@@ -28,7 +28,7 @@ const teamMembers = [
   {
     name: "Guwani Hathurusinghe",
     role: "Facilities & Assets Catalogue",
-    image: "https://randomuser.me/api/portraits/women/1.jpg",
+    image: "https://randomuser.me/api/portraits/dpImage.jpeg",
   },
   {
     name: "Amanda ",
