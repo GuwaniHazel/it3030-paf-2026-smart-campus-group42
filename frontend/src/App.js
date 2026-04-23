@@ -4,6 +4,7 @@ import ResourcesPage from "./pages/ResourcesPage";
 import HomePage from "./pages/HomePage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ContactUsPage from "./pages/ContactUs";
+import TicketsPage from "./pages/TicketsPage";
 import Layout from "./components/layout/Layout";
 
 const PlaceholderPage = ({ title, description, navigate }) => (
@@ -28,14 +29,6 @@ const BookingManagementPage = ({ navigate }) => (
   <PlaceholderPage
     title="Booking Management"
     description="This is a placeholder page for Module B. Booking workflows will be implemented here."
-    navigate={navigate}
-  />
-);
-
-const TicketsPage = ({ navigate }) => (
-  <PlaceholderPage
-    title="Incident Tickets"
-    description="This is a placeholder page for Module C. Ticket reporting and tracking will be implemented here."
     navigate={navigate}
   />
 );
