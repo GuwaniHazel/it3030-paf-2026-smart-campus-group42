@@ -11,17 +11,29 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * BookingService – Module B: Booking Management (Day 5 – Approve / Reject)
+ * BookingService – Module B: Booking Management (Complete – Day 1 to Day 6)
  *
- * Layered architecture flow:
+ * ─────────────────────────────────────────────────────────────────────────
+ * LAYERED ARCHITECTURE:
  *   HTTP Request → Controller → Service → Repository → Database
  *
- * This service now covers:
- *   Day 3 – createBooking, getAllBookings, getBookingById (basic CRUD + validation)
- *   Day 4 – hasConflict (conflict detection before saving)
- *   Day 5 – approveBooking, rejectBooking (admin approval workflow)  ← NEW
+ * WHY A SERVICE LAYER?
+ *   • The Controller only handles HTTP (receives request, returns response).
+ *   • ALL business logic lives here — not in the Controller.
+ *   • This keeps each layer focused on one responsibility (clean architecture).
+ * ─────────────────────────────────────────────────────────────────────────
  *
- * @Service – tells Spring to create and manage one instance of this class.
+ * Methods provided:
+ *   1. createBooking()    – validate + conflict check + save as PENDING
+ *   2. getAllBookings()   – return every booking (admin use)
+ *   3. getBookingById()  – return one booking by id
+ *   4. getUserBookings() – return all bookings for a specific user
+ *   5. approveBooking()  – admin sets status to APPROVED
+ *   6. rejectBooking()   – admin sets status to REJECTED + stores reason
+ *   7. cancelBooking()   – user sets status to CANCELLED
+ *   8. hasConflict()     – helper: overlap check against APPROVED bookings
+ *
+ * @Service – Spring creates and manages one instance of this class.
  */
 @Service
 public class BookingService {
@@ -33,8 +45,9 @@ public class BookingService {
     private final BookingRepository bookingRepository;
 
     /**
-     * Constructor injection – the recommended way to inject dependencies in Spring.
-     * Spring automatically provides the BookingRepository bean when creating this service.
+     * Constructor injection — the recommended Spring way.
+     * Spring automatically provides the BookingRepository bean here.
+     * This also makes the class easy to unit-test without Spring.
      */
     @Autowired
     public BookingService(BookingRepository bookingRepository) {
@@ -42,29 +55,36 @@ public class BookingService {
     }
 
     // ─────────────────────────────────────────────
-    // METHOD 1: CREATE BOOKING  (Day 3 + Day 4)
+    // METHOD 1: CREATE BOOKING
     // ─────────────────────────────────────────────
 
     /**
-     * Validates and saves a new booking to the database.
+     * Validates a new booking request and saves it if all rules pass.
      *
-     * Business Rules:
+     * Validation Rules (applied in order):
      *   1. startTime must be before endTime.
      *   2. attendees must be greater than 0.
-     *   3. No time conflict with an existing APPROVED booking (Day 4).
-     *   4. Status is always forced to PENDING on creation.
+     *   3. Booking date cannot be in the past.
+     *   4. No time conflict with an existing APPROVED booking
+     *      for the same resource on the same date.
      *
-     * @param booking  The Booking object received from the controller
-     * @return         The saved Booking (with generated id and createdAt)
-     * @throws IllegalArgumentException if validation fails or a conflict is detected
+     * If all validations pass:
+     *   → Status is forced to PENDING (user cannot set their own status).
+     *   → Booking is saved to the database.
+     *
+     * @param booking  Booking object from the request body
+     * @return         Saved Booking with generated id and createdAt
+     * @throws IllegalArgumentException if any validation or conflict check fails
      */
     public Booking createBooking(Booking booking) {
 
-        // ── VALIDATION 1: Time range check ──────────────────────────────
+        // ── VALIDATION 1: Null time check ────────────────────────────────
         if (booking.getStartTime() == null || booking.getEndTime() == null) {
             throw new IllegalArgumentException("Start time and end time are required.");
         }
 
+        // ── VALIDATION 2: Time range — start must be before end ──────────
+        // Example: 09:00 → 11:00 is valid.  11:00 → 09:00 is NOT valid.
         if (!booking.getStartTime().isBefore(booking.getEndTime())) {
             throw new IllegalArgumentException(
                 "Start time must be before end time. " +
@@ -73,7 +93,7 @@ public class BookingService {
             );
         }
 
-        // ── VALIDATION 2: Attendees check ────────────────────────────────
+        // ── VALIDATION 3: Attendees must be at least 1 ───────────────────
         if (booking.getAttendees() <= 0) {
             throw new IllegalArgumentException(
                 "Number of attendees must be greater than 0. " +
@@ -81,50 +101,74 @@ public class BookingService {
             );
         }
 
-        // ── VALIDATION 3: Conflict Detection (Day 4) ─────────────────────
+        // ── VALIDATION 4: Booking date cannot be in the past ─────────────
+        // LocalDate.now() gives today's date (server time).
+        // isBefore(today) → the requested date is yesterday or earlier → reject.
+        if (booking.getDate() == null) {
+            throw new IllegalArgumentException("Booking date is required.");
+        }
+
+        if (booking.getDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException(
+                "Booking date cannot be in the past. " +
+                "Received: " + booking.getDate()
+            );
+        }
+
+        // ── VALIDATION 5: Conflict Detection ─────────────────────────────
+        // Check whether this time slot clashes with any APPROVED booking
+        // for the same resource on the same date.
         if (hasConflict(
                 booking.getResourceId(),
                 booking.getDate(),
                 booking.getStartTime(),
                 booking.getEndTime())) {
 
+            // Do NOT save — return a clear error message.
             throw new IllegalArgumentException(
                 "Booking conflict detected for selected time range"
             );
         }
 
-        // ── Force status to PENDING ──────────────────────────────────────
+        // ── Force status = PENDING ────────────────────────────────────────
+        // No matter what the client sends, every new booking starts as PENDING.
+        // Status changes only through admin approve/reject or user cancel.
         booking.setStatus(BookingStatus.PENDING);
 
-        // ── Save and return ──────────────────────────────────────────────
+        // ── Save to database ──────────────────────────────────────────────
+        // JPA triggers @PrePersist → sets createdAt automatically.
         return bookingRepository.save(booking);
     }
 
     // ─────────────────────────────────────────────
-    // METHOD 2: GET ALL BOOKINGS  (Day 3)
+    // METHOD 2: GET ALL BOOKINGS  (Admin use)
     // ─────────────────────────────────────────────
 
     /**
-     * Retrieves all bookings from the database.
+     * Returns every booking in the database.
+     * Intended for the admin dashboard — view all requests system-wide.
      *
      * @return List of all Booking records (empty list if none exist)
      */
     public List<Booking> getAllBookings() {
+        // JpaRepository provides findAll() automatically — no SQL needed.
         return bookingRepository.findAll();
     }
 
     // ─────────────────────────────────────────────
-    // METHOD 3: GET BOOKING BY ID  (Day 3)
+    // METHOD 3: GET BOOKING BY ID
     // ─────────────────────────────────────────────
 
     /**
-     * Retrieves a single booking by its primary key.
+     * Returns a single booking by its primary key.
      *
-     * @param id  The primary key of the booking to retrieve
-     * @return    The Booking object if found
-     * @throws RuntimeException if no booking found with the given id
+     * @param id  Primary key of the booking
+     * @return    The Booking if found
+     * @throws RuntimeException if no booking exists with that id (→ 404)
      */
     public Booking getBookingById(Long id) {
+        // findById() returns Optional<Booking>.
+        // orElseThrow() → if empty, throw RuntimeException with a helpful message.
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(
                     "Booking not found with id: " + id
@@ -132,111 +176,190 @@ public class BookingService {
     }
 
     // ─────────────────────────────────────────────
-    // METHOD 4: CONFLICT DETECTION  (Day 4)
+    // METHOD 4: GET USER'S OWN BOOKINGS
     // ─────────────────────────────────────────────
 
     /**
-     * Checks whether a proposed time slot conflicts with any existing APPROVED
-     * booking for the same resource on the same date.
+     * Returns all bookings belonging to a specific user.
+     * Used for the "My Bookings" feature — a user sees only their own records.
      *
-     * Overlap Rule (must both be true for a conflict):
-     *   newStartTime < existingEndTime
-     *   AND
-     *   newEndTime   > existingStartTime
+     * @param userId  The ID of the user
+     * @return        List of bookings made by that user
+     */
+    public List<Booking> getUserBookings(Long userId) {
+        // Custom repository method — Spring Data generates:
+        //   SELECT * FROM bookings WHERE user_id = ?
+        return bookingRepository.findByUserId(userId);
+    }
+
+    // ─────────────────────────────────────────────
+    // METHOD 5: APPROVE BOOKING  (Admin action)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Admin approves a booking — changes its status to APPROVED.
      *
-     * @return true if a conflict exists, false if the slot is free
+     * Steps:
+     *   1. Find the booking (throws 404 if not found).
+     *   2. Set status to APPROVED.
+     *   3. Save and return the updated booking.
+     *
+     * @param id  ID of the booking to approve
+     * @return    Updated Booking with status = APPROVED
+     * @throws RuntimeException if booking not found
+     */
+    public Booking approveBooking(Long id) {
+
+        // Step 1: Find the booking (reuses getBookingById — throws if not found).
+        Booking booking = getBookingById(id);
+
+        // Step 2: Update status to APPROVED.
+        // JPA will run an UPDATE (not INSERT) because the id already exists.
+        booking.setStatus(BookingStatus.APPROVED);
+
+        // Step 3: Save the updated booking to the database.
+        return bookingRepository.save(booking);
+    }
+
+    // ─────────────────────────────────────────────
+    // METHOD 6: REJECT BOOKING  (Admin action)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Admin rejects a booking — changes status to REJECTED and stores the reason.
+     *
+     * Steps:
+     *   1. Find the booking (throws 404 if not found).
+     *   2. Set status to REJECTED.
+     *   3. Store the rejection reason (saved to rejection_reason column).
+     *   4. Save and return the updated booking.
+     *
+     * @param id     ID of the booking to reject
+     * @param reason The reason written by the admin (e.g., "Resource unavailable")
+     * @return       Updated Booking with status = REJECTED and rejectionReason stored
+     * @throws RuntimeException if booking not found
+     */
+    public Booking rejectBooking(Long id, String reason) {
+
+        // Step 1: Find the booking.
+        Booking booking = getBookingById(id);
+
+        // Step 2: Set status to REJECTED.
+        booking.setStatus(BookingStatus.REJECTED);
+
+        // Step 3: Store the rejection reason so the user can see why it was refused.
+        booking.setRejectionReason(reason);
+
+        // Step 4: Save and return.
+        return bookingRepository.save(booking);
+    }
+
+    // ─────────────────────────────────────────────
+    // METHOD 7: CANCEL BOOKING  (User action)
+    // ─────────────────────────────────────────────
+
+    /**
+     * User cancels their own booking — changes status to CANCELLED.
+     *
+     * Business Rule:
+     *   Only bookings with status PENDING or APPROVED can be cancelled.
+     *   A booking that is already REJECTED or CANCELLED cannot be cancelled again.
+     *
+     * Steps:
+     *   1. Find the booking (throws 404 if not found).
+     *   2. Check if the current status allows cancellation.
+     *   3. Set status to CANCELLED.
+     *   4. Save and return the updated booking.
+     *
+     * @param id  ID of the booking to cancel
+     * @return    Updated Booking with status = CANCELLED
+     * @throws RuntimeException     if booking not found
+     * @throws IllegalStateException if booking cannot be cancelled (wrong status)
+     */
+    public Booking cancelBooking(Long id) {
+
+        // Step 1: Find the booking.
+        Booking booking = getBookingById(id);
+
+        // Step 2: Only PENDING or APPROVED bookings can be cancelled.
+        // REJECTED → already refused, nothing to cancel.
+        // CANCELLED → already cancelled, no need to cancel again.
+        if (booking.getStatus() == BookingStatus.REJECTED ||
+            booking.getStatus() == BookingStatus.CANCELLED) {
+
+            throw new IllegalStateException(
+                "Cannot cancel a booking with status: " + booking.getStatus() +
+                ". Only PENDING or APPROVED bookings can be cancelled."
+            );
+        }
+
+        // Step 3: Set status to CANCELLED.
+        booking.setStatus(BookingStatus.CANCELLED);
+
+        // Step 4: Save and return.
+        return bookingRepository.save(booking);
+    }
+
+    // ─────────────────────────────────────────────
+    // METHOD 8: CONFLICT DETECTION  (Internal helper)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Checks if a proposed time slot overlaps with any existing APPROVED booking
+     * for the same resource on the same date.
+     *
+     * ┌───────────────────────────────────────────────────────────────────┐
+     * │  OVERLAP FORMULA  (industry-standard interval overlap check)      │
+     * │                                                                   │
+     * │  Two time slots [A_start, A_end) and [B_start, B_end) overlap    │
+     * │  when BOTH of the following are true:                             │
+     * │                                                                   │
+     * │    newStartTime  <  existingEndTime                               │
+     * │    newEndTime    >  existingStartTime                             │
+     * │                                                                   │
+     * │  Visual examples:                                                 │
+     * │    Existing :  [09:00 ──────────── 11:00]                        │
+     * │    New A    :        [10:00 ─────────────── 12:00] ← CONFLICT    │
+     * │    New B    :  [07:00 ─── 09:00]                   ← No conflict │
+     * │    New C    :                      [11:00 ── 13:00]← No conflict │
+     * └───────────────────────────────────────────────────────────────────┘
+     *
+     * @param resourceId  ID of the campus resource
+     * @param date        Requested date
+     * @param startTime   Requested start time
+     * @param endTime     Requested end time
+     * @return  true  → conflict found, do NOT save the booking
+     *          false → no conflict, safe to save
      */
     public boolean hasConflict(Long resourceId, LocalDate date,
                                LocalTime startTime, LocalTime endTime) {
 
-        // Fetch only APPROVED bookings – PENDING/REJECTED/CANCELLED do not block the slot.
+        // STEP 1: Fetch all APPROVED bookings for this resource on this date.
+        //
+        // WHY only APPROVED?
+        //   PENDING   → not yet confirmed; should not block other requests.
+        //   REJECTED  → booking refused; slot is free.
+        //   CANCELLED → user cancelled; slot is free.
+        //   APPROVED  → slot is definitively reserved → must check these.
         List<Booking> approvedBookings = bookingRepository
                 .findByResourceIdAndDateAndStatus(resourceId, date, BookingStatus.APPROVED);
 
+        // STEP 2: Check each approved booking using the overlap formula.
         for (Booking existing : approvedBookings) {
+
+            // Condition A: new booking starts before the existing one ends
+            // Condition B: new booking ends after the existing one starts
+            // BOTH must be true for a conflict to exist.
             boolean overlaps =
-                    startTime.isBefore(existing.getEndTime())
-                 && endTime.isAfter(existing.getStartTime());
+                    startTime.isBefore(existing.getEndTime())   // Condition A
+                 && endTime.isAfter(existing.getStartTime());   // Condition B
 
             if (overlaps) {
-                return true;  // Conflict detected
+                return true;  // ← Conflict found — do NOT save
             }
         }
 
-        return false;  // No conflict
-    }
-
-    // ─────────────────────────────────────────────
-    // METHOD 5: APPROVE BOOKING  [DAY 5 – NEW]
-    // ─────────────────────────────────────────────
-
-    /**
-     * Approves a booking by setting its status to APPROVED.
-     *
-     * Steps:
-     *   1. Find the booking by id (throws exception if not found).
-     *   2. Change the status from PENDING → APPROVED.
-     *   3. Save the updated booking back to the database.
-     *   4. Return the updated booking.
-     *
-     * Called by: PUT /api/bookings/{id}/approve
-     *
-     * @param id  The ID of the booking to approve
-     * @return    The updated Booking with status = APPROVED
-     * @throws RuntimeException if no booking found with the given id
-     */
-    public Booking approveBooking(Long id) {
-
-        // STEP 1: Find the booking in the database.
-        // If it does not exist, getBookingById() throws a RuntimeException automatically.
-        Booking booking = getBookingById(id);
-
-        // STEP 2: Update the status to APPROVED.
-        // This means the admin has confirmed the resource is available for this slot.
-        booking.setStatus(BookingStatus.APPROVED);
-
-        // STEP 3: Save the updated booking.
-        // JPA will run an UPDATE SQL statement (not INSERT, because the id already exists).
-        return bookingRepository.save(booking);
-    }
-
-    // ─────────────────────────────────────────────
-    // METHOD 6: REJECT BOOKING  [DAY 5 – NEW]
-    // ─────────────────────────────────────────────
-
-    /**
-     * Rejects a booking by setting its status to REJECTED and storing the reason.
-     *
-     * Steps:
-     *   1. Find the booking by id (throws exception if not found).
-     *   2. Change the status from PENDING → REJECTED.
-     *   3. Store the rejection reason provided by the admin.
-     *   4. Save the updated booking back to the database.
-     *   5. Return the updated booking.
-     *
-     * Called by: PUT /api/bookings/{id}/reject
-     *
-     * @param id     The ID of the booking to reject
-     * @param reason The reason for rejection (e.g., "Resource unavailable")
-     * @return       The updated Booking with status = REJECTED and the reason stored
-     * @throws RuntimeException if no booking found with the given id
-     */
-    public Booking rejectBooking(Long id, String reason) {
-
-        // STEP 1: Find the booking in the database.
-        // If not found, getBookingById() throws RuntimeException → controller returns 404.
-        Booking booking = getBookingById(id);
-
-        // STEP 2: Update the status to REJECTED.
-        // The admin has decided this booking cannot be accommodated.
-        booking.setStatus(BookingStatus.REJECTED);
-
-        // STEP 3: Store the rejection reason.
-        // This is saved to the 'rejection_reason' column in the database.
-        // The user can later read this to understand why their booking was refused.
-        booking.setRejectionReason(reason);
-
-        // STEP 4: Save and return the updated booking.
-        return bookingRepository.save(booking);
+        // STEP 3: No conflict found — safe to book.
+        return false;
     }
 }
