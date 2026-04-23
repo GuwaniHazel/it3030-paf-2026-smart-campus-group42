@@ -26,22 +26,22 @@ const CTA_BG_URL =
 // Team members data
 const teamMembers = [
   {
-    //name: "Sarah Anderson",
+    
     role: "Project Lead - Module A",
     image: "https://randomuser.me/api/portraits/women/1.jpg",
   },
   {
-    //name: "John Smith",
+    
     role: "Backend Lead - Module B",
     image: "https://randomuser.me/api/portraits/men/1.jpg",
   },
   {
-    //name: "Emily Chen",
+    
     role: "UI/UX Designer - Module C",
     image: "https://randomuser.me/api/portraits/women/2.jpg",
   },
   {
-    //name: "Michael Johnson",
+   
     role: "DevOps Lead - Module D",
     image: "https://randomuser.me/api/portraits/men/2.jpg",
   },
