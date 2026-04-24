@@ -87,9 +87,12 @@ const resolveRole = (inputRole) => {
 };
 
 const Spinner = ({ label = "Loading" }) => (
-  <div className="flex items-center gap-3 text-sm text-slate-600">
-    <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-sky-600" />
-    <span>{label}</span>
+  <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+    <span className="relative inline-flex h-6 w-6 items-center justify-center">
+      <span className="absolute inline-flex h-6 w-6 animate-ping rounded-full bg-sky-400/30" />
+      <span className="h-6 w-6 animate-spin animate-pulse rounded-full border-2 border-slate-300 border-t-sky-500" />
+    </span>
+    <span className="font-medium">{label}</span>
   </div>
 );
 
@@ -113,8 +116,8 @@ const ModalShell = ({ children, onClose, isDarkMode, widthClass = "max-w-2xl" })
   <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
     <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
     <div
-      className={`relative z-10 w-full ${widthClass} rounded-2xl shadow-2xl animate-[slideUp_.25s_ease-out] ${
-        isDarkMode ? "bg-slate-900" : "bg-white"
+      className={`relative z-10 w-full ${widthClass} rounded-2xl border shadow-2xl animate-[slideUp_.25s_ease-out] transition-all duration-300 ${
+        isDarkMode ? "border-slate-700/70 bg-slate-900/95" : "border-slate-200/80 bg-white/95"
       }`}
     >
       {children}
@@ -137,10 +140,10 @@ const ResourceFormModal = ({
   if (!isOpen) return null;
 
   const inputClass =
-    `w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 ${
+    `w-full rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-500 focus:ring-2 focus:ring-sky-200/60 focus:ring-blue-500 focus:outline-none ${
       isDarkMode
-        ? "border-slate-700 bg-slate-800 text-slate-100"
-        : "border-slate-300 bg-white text-slate-700"
+        ? "border-slate-700 bg-slate-800/90 text-slate-100 placeholder:text-slate-500"
+        : "border-slate-300 bg-white text-slate-700 placeholder:text-slate-400"
     }`;
 
   const labelClass = isDarkMode ? "text-slate-300" : "text-slate-700";
@@ -159,7 +162,7 @@ const ResourceFormModal = ({
         <button
           type="button"
           onClick={onClose}
-          className={`rounded-lg px-2 py-1 text-lg leading-none transition ${
+          className={`rounded-lg px-2 py-1 text-lg leading-none transition-all transition-transform duration-200 hover:scale-105 active:scale-95 ${
             isDarkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-500 hover:bg-slate-100"
           }`}
         >
@@ -274,7 +277,7 @@ const ResourceFormModal = ({
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-300/60 ${
               isDarkMode
                 ? "border border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700"
                 : "border border-slate-300 text-slate-700 hover:bg-slate-100"
@@ -285,7 +288,7 @@ const ResourceFormModal = ({
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-300/70 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Saving..." : "Save"}
           </button>
@@ -312,7 +315,7 @@ const ConfirmDeleteModal = ({ isOpen, isDarkMode, resource, onClose, onConfirm, 
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 ${
               isDarkMode ? "bg-slate-800 text-slate-100 hover:bg-slate-700" : "bg-slate-200 text-slate-700 hover:bg-slate-300"
             }`}
           >
@@ -322,7 +325,7 @@ const ConfirmDeleteModal = ({ isOpen, isDarkMode, resource, onClose, onConfirm, 
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-rose-700 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Deleting..." : "Delete"}
           </button>
@@ -367,7 +370,7 @@ const ResourceDetailsModal = ({ isOpen, isDarkMode, resource, onClose, onBook, c
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 ${
               isDarkMode ? "bg-slate-800 text-slate-100 hover:bg-slate-700" : "bg-slate-200 text-slate-700 hover:bg-slate-300"
             }`}
           >
@@ -377,7 +380,7 @@ const ResourceDetailsModal = ({ isOpen, isDarkMode, resource, onClose, onBook, c
             <button
               type="button"
               onClick={() => onBook(resource)}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg active:scale-95"
             >
               Book
             </button>
@@ -723,7 +726,9 @@ const ResourcesPage = ({ role, navigate }) => {
     <div className={`min-h-screen p-4 transition-colors duration-300 md:p-6 ${shellClass}`}>
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Top bar */}
-        <header className={`rounded-2xl p-5 shadow-lg backdrop-blur-sm transition-colors duration-300 ${headerClass}`}>
+        <header className={`rounded-2xl border p-5 shadow-xl backdrop-blur-md transition-colors duration-300 ${headerClass} ${
+          isDarkMode ? "border-slate-700/60" : "border-white/60"
+        }`}>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -743,7 +748,7 @@ const ResourcesPage = ({ role, navigate }) => {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition hover:scale-[1.02] ${
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 ${
                   isDarkMode ? "bg-slate-700 text-slate-100 hover:bg-slate-600" : "bg-slate-200 text-slate-800 hover:bg-slate-300"
                 }`}
               >
@@ -754,14 +759,14 @@ const ResourcesPage = ({ role, navigate }) => {
                   <button
                     type="button"
                     onClick={exportCsv}
-                    className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.02] hover:bg-cyan-700"
+                    className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-cyan-700 hover:shadow-lg active:scale-95"
                   >
                     Export CSV
                   </button>
                   <button
                     type="button"
                     onClick={openCreate}
-                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.02] hover:bg-emerald-700"
+                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-emerald-700 hover:shadow-lg active:scale-95"
                   >
                     + Add Resource
                   </button>
@@ -770,7 +775,7 @@ const ResourcesPage = ({ role, navigate }) => {
               <button
                 type="button"
                 onClick={() => navigate?.(isAdmin ? "/student" : "/admin")}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition hover:scale-[1.02] ${
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 ${
                   isDarkMode ? "bg-slate-800 text-slate-100 hover:bg-slate-700" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
@@ -795,12 +800,12 @@ const ResourcesPage = ({ role, navigate }) => {
             {stats.map((card, index) => (
               <article
                 key={card.title}
-                className={`rounded-2xl bg-gradient-to-r ${STAT_GRADIENTS[index % STAT_GRADIENTS.length]} p-4 text-white shadow-md ring-1 transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                className={`group rounded-2xl bg-gradient-to-r ${STAT_GRADIENTS[index % STAT_GRADIENTS.length]} p-4 text-white shadow-md ring-1 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
                   isDarkMode ? "ring-white/10" : "ring-black/5"
                 }`}
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-2xl">{card.icon}</span>
+                  <span className="text-2xl transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6">{card.icon}</span>
                   <span className="rounded-full bg-white/20 px-2 py-1 text-xs font-semibold">Live</span>
                 </div>
                 <p className="text-sm text-white/85">{card.title}</p>
@@ -811,13 +816,13 @@ const ResourcesPage = ({ role, navigate }) => {
         )}
 
         {/* Charts and filters */}
-        <section className={`rounded-2xl p-4 shadow-lg transition-colors duration-300 ${panelClass}`}>
+        <section className={`rounded-2xl p-4 shadow-xl transition-colors duration-300 ${panelClass}`}>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div>
               <ResourcesByTypeChart resources={resources} isDarkMode={isDarkMode} />
             </div>
 
-            <div className="space-y-4">
+            <div className={`space-y-4 rounded-2xl border p-4 ${isDarkMode ? "border-slate-700/70 bg-slate-800/40" : "border-slate-200 bg-slate-50/80"}`}>
               <h2 className={`text-lg font-bold ${panelText}`}>Search and Filters</h2>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
                 <input
@@ -825,18 +830,18 @@ const ResourcesPage = ({ role, navigate }) => {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search by name or location"
-                  className={`w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 xl:col-span-2 ${
+                  className={`w-full rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none xl:col-span-2 ${
                     isDarkMode
-                      ? "border-slate-700 bg-slate-800 text-slate-100 focus:bg-slate-800"
-                      : "border-slate-200 bg-slate-50 text-slate-700 focus:bg-white"
+                      ? "border-slate-700 bg-slate-900/60 text-slate-100 focus:bg-slate-800"
+                      : "border-slate-200 bg-white text-slate-700 focus:bg-white"
                   }`}
                 />
 
                 <select
                   value={typeFilter}
                   onChange={(event) => setTypeFilter(event.target.value)}
-                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 ${
-                    isDarkMode ? "border-slate-700 bg-slate-800 text-slate-100" : "border-slate-200 bg-white text-slate-700"
+                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none ${
+                    isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 >
                   <option value="ALL">All Types</option>
@@ -850,8 +855,8 @@ const ResourcesPage = ({ role, navigate }) => {
                 <select
                   value={statusFilter}
                   onChange={(event) => setStatusFilter(event.target.value)}
-                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 ${
-                    isDarkMode ? "border-slate-700 bg-slate-800 text-slate-100" : "border-slate-200 bg-white text-slate-700"
+                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none ${
+                    isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 >
                   <option value="ALL">All Status</option>
@@ -867,16 +872,16 @@ const ResourcesPage = ({ role, navigate }) => {
                   value={locationFilter}
                   onChange={(event) => setLocationFilter(event.target.value)}
                   placeholder="Location"
-                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 ${
-                    isDarkMode ? "border-slate-700 bg-slate-800 text-slate-100" : "border-slate-200 bg-white text-slate-700"
+                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none ${
+                    isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 />
 
                 <select
                   value={capacityFilter}
                   onChange={(event) => setCapacityFilter(event.target.value)}
-                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 ${
-                    isDarkMode ? "border-slate-700 bg-slate-800 text-slate-100" : "border-slate-200 bg-white text-slate-700"
+                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none ${
+                    isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 >
                   <option value="ALL">All Capacities</option>
@@ -904,7 +909,17 @@ const ResourcesPage = ({ role, navigate }) => {
         {/* Loading / Error */}
         {loading && (
           <section className={`rounded-2xl p-4 shadow-lg ${panelClass}`}>
-            <Spinner label="Loading resources..." />
+            <div className="space-y-4">
+              <Spinner label="Loading resources..." />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={`resource-skeleton-${index}`}
+                    className={`h-36 animate-pulse rounded-2xl ${isDarkMode ? "bg-slate-800" : "bg-slate-100"}`}
+                  />
+                ))}
+              </div>
+            </div>
           </section>
         )}
 
@@ -916,7 +931,7 @@ const ResourcesPage = ({ role, navigate }) => {
 
         {/* Data Grid */}
         {!loading && !error && (
-          <section className={`rounded-2xl p-4 shadow-lg transition-colors duration-300 ${panelClass}`}>
+          <section className={`rounded-2xl p-4 shadow-xl transition-colors duration-300 ${panelClass}`}>
             <div className="mb-4 flex items-center justify-between gap-2">
               <div>
                 <h2 className={`text-lg font-bold ${panelText}`}>Resources</h2>
@@ -932,7 +947,7 @@ const ResourcesPage = ({ role, navigate }) => {
                   type="button"
                   onClick={bulkDelete}
                   disabled={deleteBusy}
-                  className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-rose-700 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {deleteBusy ? "Deleting..." : `Delete Selected (${selectedIds.length})`}
                 </button>
@@ -945,8 +960,10 @@ const ResourcesPage = ({ role, navigate }) => {
                 {pageData.map((resource) => (
                   <article
                     key={resource.id}
-                    className={`rounded-2xl border p-4 transition duration-200 hover:-translate-y-1 hover:shadow-md ${
-                      isDarkMode ? "border-slate-700 bg-slate-800 hover:bg-slate-700" : "border-slate-200 bg-slate-50 hover:bg-white"
+                    className={`group rounded-2xl border border-transparent p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:shadow-xl ${
+                      isDarkMode
+                        ? "[background:linear-gradient(rgba(15,23,42,.7),rgba(15,23,42,.7))_padding-box,linear-gradient(120deg,rgba(56,189,248,.45),rgba(45,212,191,.45),rgba(125,211,252,.45))_border-box] hover:[background:linear-gradient(rgba(30,41,59,.85),rgba(30,41,59,.85))_padding-box,linear-gradient(120deg,rgba(56,189,248,.75),rgba(45,212,191,.75),rgba(125,211,252,.75))_border-box]"
+                        : "[background:linear-gradient(rgba(255,255,255,.72),rgba(255,255,255,.72))_padding-box,linear-gradient(120deg,rgba(56,189,248,.35),rgba(16,185,129,.35),rgba(59,130,246,.35))_border-box] hover:[background:linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,.9))_padding-box,linear-gradient(120deg,rgba(56,189,248,.7),rgba(16,185,129,.7),rgba(59,130,246,.7))_border-box]"
                     }`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-3">
@@ -958,7 +975,7 @@ const ResourcesPage = ({ role, navigate }) => {
                         <button
                           type="button"
                           onClick={() => toggleFavourite(resource.id)}
-                          className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-base font-bold transition ${
+                          className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-base font-bold transition-all transition-transform duration-200 hover:scale-110 active:scale-95 ${
                             favouriteIds.includes(resource.id)
                               ? "bg-rose-100 text-rose-600 hover:bg-rose-200"
                               : isDarkMode
@@ -991,14 +1008,14 @@ const ResourcesPage = ({ role, navigate }) => {
                       <button
                         type="button"
                         onClick={() => openDetails(resource)}
-                        className="flex-1 rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                        className="flex-1 rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-slate-200 active:scale-95"
                       >
                         Details
                       </button>
                       <button
                         type="button"
                         onClick={() => handleBook(resource)}
-                        className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                        className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg active:scale-95"
                       >
                         Book
                       </button>
@@ -1010,15 +1027,16 @@ const ResourcesPage = ({ role, navigate }) => {
 
             {/* Admin table */}
             {isAdmin && (
-              <div className="overflow-x-auto">
+              <div className={`overflow-x-auto rounded-2xl border ${isDarkMode ? "border-slate-700/70" : "border-slate-200"}`}>
                 <table className={`min-w-[1040px] w-full text-left text-sm ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
                   <thead>
-                    <tr className={`border-b text-xs uppercase tracking-wide ${isDarkMode ? "border-slate-700 text-slate-400" : "border-slate-200 text-slate-500"}`}>
+                    <tr className={`border-b text-xs uppercase tracking-[0.12em] ${isDarkMode ? "border-slate-700 bg-slate-800/80 text-slate-300" : "border-slate-200 bg-slate-100 text-slate-600"}`}>
                       <th className="px-3 py-3">
                         <input
                           type="checkbox"
                           checked={pageData.length > 0 && selectedIds.length === pageData.length}
                           onChange={toggleSelectAll}
+                          className="h-4 w-4 rounded border-slate-400 text-sky-600 focus:ring-sky-400"
                         />
                       </th>
                       <th className="px-3 py-3">ID</th>
@@ -1035,13 +1053,18 @@ const ResourcesPage = ({ role, navigate }) => {
                     {pageData.map((resource) => (
                       <tr
                         key={resource.id}
-                        className={`border-b transition duration-200 ${isDarkMode ? "border-slate-800 hover:bg-slate-800/70" : "border-slate-100 hover:bg-slate-50"}`}
+                        className={`border-b transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                          isDarkMode
+                            ? "border-slate-800 odd:bg-slate-900/55 even:bg-slate-900/35 hover:bg-slate-700/60"
+                            : "border-slate-100 odd:bg-white even:bg-slate-50/70 hover:bg-sky-50/70"
+                        }`}
                       >
                         <td className="px-3 py-3">
                           <input
                             type="checkbox"
                             checked={selectedIds.includes(resource.id)}
                             onChange={() => toggleSelected(resource.id)}
+                            className="h-4 w-4 rounded border-slate-400 text-sky-600 focus:ring-sky-400"
                           />
                         </td>
                         <td className={`px-3 py-3 font-semibold ${isDarkMode ? "text-slate-300" : "text-slate-700"}`}>#{resource.id}</td>
@@ -1066,7 +1089,7 @@ const ResourcesPage = ({ role, navigate }) => {
                                 showToast("error", e.message || "Failed to update status.");
                               }
                             }}
-                            className={`rounded-lg border px-2 py-1 text-xs font-semibold outline-none transition ${
+                            className={`rounded-lg border px-2 py-1 text-xs font-semibold outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-300/50 ${
                               isDarkMode
                                 ? "border-slate-700 bg-slate-800 text-slate-100"
                                 : "border-slate-300 bg-white text-slate-700"
@@ -1087,7 +1110,7 @@ const ResourcesPage = ({ role, navigate }) => {
                             <button
                               type="button"
                               onClick={() => openEdit(resource)}
-                              className="rounded-lg bg-sky-100 px-2.5 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-200"
+                              className="rounded-lg bg-sky-100 px-2.5 py-1.5 text-xs font-semibold text-sky-700 transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-sky-200 active:scale-95"
                             >
                               Edit
                             </button>
@@ -1095,7 +1118,7 @@ const ResourcesPage = ({ role, navigate }) => {
                             <button
                               type="button"
                               onClick={() => handleDeleteClick(resource)}
-                              className="rounded-lg bg-rose-100 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-200"
+                              className="rounded-lg bg-rose-100 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-rose-200 active:scale-95"
                             >
                               Delete
                             </button>
@@ -1121,12 +1144,12 @@ const ResourcesPage = ({ role, navigate }) => {
                   type="button"
                   disabled={page === 1}
                   onClick={() => setPage((previous) => Math.max(1, previous - 1))}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all transition-transform duration-200 active:scale-95 ${
                     page === 1
                       ? "cursor-not-allowed bg-slate-300 text-slate-500"
                       : isDarkMode
-                        ? "bg-slate-700 text-slate-100 hover:bg-slate-600"
-                        : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                        ? "bg-slate-700 text-slate-100 hover:-translate-y-0.5 hover:bg-slate-600"
+                        : "bg-slate-200 text-slate-700 hover:-translate-y-0.5 hover:bg-slate-300"
                   }`}
                 >
                   Previous
@@ -1138,12 +1161,12 @@ const ResourcesPage = ({ role, navigate }) => {
                   type="button"
                   disabled={page >= totalPages}
                   onClick={() => setPage((previous) => Math.min(totalPages, previous + 1))}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all transition-transform duration-200 active:scale-95 ${
                     page >= totalPages
                       ? "cursor-not-allowed bg-slate-300 text-slate-500"
                       : isDarkMode
-                        ? "bg-slate-700 text-slate-100 hover:bg-slate-600"
-                        : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                        ? "bg-slate-700 text-slate-100 hover:-translate-y-0.5 hover:bg-slate-600"
+                        : "bg-slate-200 text-slate-700 hover:-translate-y-0.5 hover:bg-slate-300"
                   }`}
                 >
                   Next
