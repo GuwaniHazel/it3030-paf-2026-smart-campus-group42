@@ -1268,8 +1268,9 @@ const ResourcesPage = ({ role, navigate }) => {
 
         {!loading && !error && !isAdmin && (
           <FavouriteResources
-            userId="student123"
             resources={filteredResources}
+            favouriteIds={favouriteIds}
+            onToggleFavourite={toggleFavourite}
             onQuickBook={handleBook}
             isDarkMode={isDarkMode}
             title="Favourite Resources"
