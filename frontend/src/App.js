@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ContactUsPage from "./pages/ContactUs";
 import TicketsPage from "./pages/TicketsPage";
+import BookingsPage from "./pages/BookingsPage";
 import Layout from "./components/layout/Layout";
 
 const PlaceholderPage = ({ title, description, navigate }) => (
@@ -25,13 +26,7 @@ const PlaceholderPage = ({ title, description, navigate }) => (
   </div>
 );
 
-const BookingManagementPage = ({ navigate }) => (
-  <PlaceholderPage
-    title="Booking Management"
-    description="This is a placeholder page for Module B. Booking workflows will be implemented here."
-    navigate={navigate}
-  />
-);
+// Module B – Booking Management is now fully implemented.
 
 const NotificationsPage = ({ navigate }) => (
   <PlaceholderPage
@@ -69,7 +64,7 @@ function App() {
   }
 
   if (pathname.startsWith("/bookings")) {
-    content = <BookingManagementPage navigate={navigate} />;
+    content = <BookingsPage />;
   }
 
   if (pathname.startsWith("/tickets")) {
