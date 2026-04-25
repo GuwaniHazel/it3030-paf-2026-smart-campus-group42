@@ -250,13 +250,13 @@ public class BookingController {
             Booking updated = bookingService.cancelBooking(id);
             return ResponseEntity.ok(updated);
 
-        } catch (RuntimeException e) {
-            // Booking not found → 404
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
         } catch (IllegalStateException e) {
             // Cannot cancel (wrong status) → 400 Bad Request
             return ResponseEntity.badRequest().body(e.getMessage());
+
+        } catch (RuntimeException e) {
+            // Booking not found → 404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }
