@@ -956,7 +956,7 @@ const ResourcesPage = ({ role, navigate }) => {
                     isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 >
-                  <option value="ALL">All Capacities</option>
+                  <option value="ALL">Capacities</option>
                   <option value="SMALL">Small (1-50)</option>
                   <option value="MEDIUM">Medium (51-150)</option>
                   <option value="LARGE">Large (151+)</option>
