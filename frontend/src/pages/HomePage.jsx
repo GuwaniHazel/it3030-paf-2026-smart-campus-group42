@@ -39,7 +39,7 @@ const CTA_BG_URL =
 
 const moduleCards = [
   {
-    id: "A",
+    
     name: "Facilities & Assets Catalogue",
     icon: FaBuilding,
     description: "Manage lecture halls, labs, equipment, and all physical campus assets in one place.",
@@ -47,7 +47,7 @@ const moduleCards = [
     image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=500&auto=format",
   },
   {
-    id: "B",
+    
     name: "Booking Management",
     icon: FaCalendarCheck,
     description: "Handle booking requests, approvals, schedules, and conflicts with a clear workflow.",
@@ -55,7 +55,7 @@ const moduleCards = [
     image: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=500&auto=format",
   },
   {
-    id: "C",
+    
     name: "Incident Tickets",
     icon: FaTicketAlt,
     description: "Track maintenance and service issues with priorities, status updates, and ownership.",
@@ -63,7 +63,7 @@ const moduleCards = [
     image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=500&auto=format",
   },
   {
-    id: "D",
+    
     name: "Notifications",
     icon: FaBell,
     description: "Deliver instant campus-wide alerts and targeted updates in real time.",
@@ -71,7 +71,7 @@ const moduleCards = [
     image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&auto=format",
   },
   {
-    id: "E",
+    
     name: "Authentication",
     icon: FaShieldAlt,
     description: "Secure role-based access for administrators, staff, and students.",

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 import ResourcesByTypeChart from "../components/resources/ResourcesByTypeChart";
 import ResourceAvailabilityCalendar from "../components/resources/ResourceAvailabilityCalendar";
 import FavouriteResources from "../components/resources/FavouriteResources";
@@ -58,13 +60,21 @@ const STATUS_BADGES = {
 };
 
 const STAT_GRADIENTS = [
-  "from-sky-500 to-blue-600",
-  "from-emerald-500 to-green-600",
+  "from-blue-600 to-purple-600",
+  "from-cyan-500 to-blue-600",
   "from-rose-500 to-red-600",
-  "from-violet-500 to-fuchsia-600",
+  "from-violet-500 to-purple-600",
   "from-amber-500 to-orange-600",
   "from-cyan-500 to-teal-600",
 ];
+
+const TYPE_THUMBNAILS = {
+  LECTURE_HALL: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&auto=format",
+  LAB: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&auto=format",
+  AUDITORIUM: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format",
+  MEETING_ROOM: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&auto=format",
+  EQUIPMENT: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format",
+};
 
 const EMPTY_FORM = {
   name: "",
@@ -87,11 +97,52 @@ const resolveRole = (inputRole) => {
 };
 
 const Spinner = ({ label = "Loading" }) => (
-  <div className="flex items-center gap-3 text-sm text-slate-600">
-    <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-sky-600" />
-    <span>{label}</span>
+  <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+    <span className="relative inline-flex h-6 w-6 items-center justify-center">
+      <span className="absolute inline-flex h-6 w-6 animate-ping rounded-full bg-sky-400/30" />
+      <span className="h-6 w-6 animate-spin animate-pulse rounded-full border-2 border-slate-300 border-t-sky-500" />
+    </span>
+    <span className="font-medium">{label}</span>
   </div>
 );
+
+const AnimatedMetric = ({ value }) => {
+  const [display, setDisplay] = useState(typeof value === "number" ? 0 : value);
+
+  useEffect(() => {
+    if (typeof value !== "number") {
+      const numericPart = Number.parseInt(String(value).replace(/[^0-9]/g, ""), 10);
+      if (Number.isNaN(numericPart)) {
+        setDisplay(value);
+        return;
+      }
+
+      const suffix = String(value).replace(/[0-9]/g, "");
+      const duration = 850;
+      const start = performance.now();
+      const tick = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - (1 - progress) ** 3;
+        setDisplay(`${Math.round(numericPart * eased)}${suffix}`);
+        if (progress < 1) window.requestAnimationFrame(tick);
+      };
+      window.requestAnimationFrame(tick);
+      return;
+    }
+
+    const duration = 850;
+    const start = performance.now();
+    const tick = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - (1 - progress) ** 3;
+      setDisplay(Math.round(value * eased));
+      if (progress < 1) window.requestAnimationFrame(tick);
+    };
+    window.requestAnimationFrame(tick);
+  }, [value]);
+
+  return <>{display}</>;
+};
 
 const Toast = ({ toast }) => {
   if (!toast.show) return null;
@@ -113,8 +164,8 @@ const ModalShell = ({ children, onClose, isDarkMode, widthClass = "max-w-2xl" })
   <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
     <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
     <div
-      className={`relative z-10 w-full ${widthClass} rounded-2xl shadow-2xl animate-[slideUp_.25s_ease-out] ${
-        isDarkMode ? "bg-slate-900" : "bg-white"
+      className={`relative z-10 w-full ${widthClass} rounded-2xl border shadow-2xl animate-[slideUp_.25s_ease-out] transition-all duration-300 ${
+        isDarkMode ? "border-slate-700/70 bg-slate-900/95" : "border-slate-200/80 bg-white/95"
       }`}
     >
       {children}
@@ -137,10 +188,10 @@ const ResourceFormModal = ({
   if (!isOpen) return null;
 
   const inputClass =
-    `w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 ${
+    `w-full rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-500 focus:ring-2 focus:ring-sky-200/60 focus:ring-blue-500 focus:outline-none ${
       isDarkMode
-        ? "border-slate-700 bg-slate-800 text-slate-100"
-        : "border-slate-300 bg-white text-slate-700"
+        ? "border-slate-700 bg-slate-800/90 text-slate-100 placeholder:text-slate-500"
+        : "border-slate-300 bg-white text-slate-700 placeholder:text-slate-400"
     }`;
 
   const labelClass = isDarkMode ? "text-slate-300" : "text-slate-700";
@@ -159,7 +210,7 @@ const ResourceFormModal = ({
         <button
           type="button"
           onClick={onClose}
-          className={`rounded-lg px-2 py-1 text-lg leading-none transition ${
+          className={`rounded-lg px-2 py-1 text-lg leading-none transition-all transition-transform duration-200 hover:scale-105 active:scale-95 ${
             isDarkMode ? "text-slate-400 hover:bg-slate-800" : "text-slate-500 hover:bg-slate-100"
           }`}
         >
@@ -274,7 +325,7 @@ const ResourceFormModal = ({
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-300/60 ${
               isDarkMode
                 ? "border border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700"
                 : "border border-slate-300 text-slate-700 hover:bg-slate-100"
@@ -285,7 +336,7 @@ const ResourceFormModal = ({
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-300/70 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Saving..." : "Save"}
           </button>
@@ -312,7 +363,7 @@ const ConfirmDeleteModal = ({ isOpen, isDarkMode, resource, onClose, onConfirm, 
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 ${
               isDarkMode ? "bg-slate-800 text-slate-100 hover:bg-slate-700" : "bg-slate-200 text-slate-700 hover:bg-slate-300"
             }`}
           >
@@ -322,7 +373,7 @@ const ConfirmDeleteModal = ({ isOpen, isDarkMode, resource, onClose, onConfirm, 
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-rose-700 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Deleting..." : "Delete"}
           </button>
@@ -367,7 +418,7 @@ const ResourceDetailsModal = ({ isOpen, isDarkMode, resource, onClose, onBook, c
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 ${
               isDarkMode ? "bg-slate-800 text-slate-100 hover:bg-slate-700" : "bg-slate-200 text-slate-700 hover:bg-slate-300"
             }`}
           >
@@ -377,7 +428,7 @@ const ResourceDetailsModal = ({ isOpen, isDarkMode, resource, onClose, onBook, c
             <button
               type="button"
               onClick={() => onBook(resource)}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg active:scale-95"
             >
               Book
             </button>
@@ -427,6 +478,13 @@ const ResourcesPage = ({ role, navigate }) => {
     } catch {
       // ignore localStorage errors
     }
+
+    AOS.init({
+      duration: 700,
+      easing: "ease-out-cubic",
+      once: true,
+      offset: 60,
+    });
   }, []);
 
   useEffect(() => {
@@ -485,6 +543,10 @@ const ResourcesPage = ({ role, navigate }) => {
     loadResources();
     return () => window.clearTimeout(toastTimer.current);
   }, [loadResources]);
+
+  useEffect(() => {
+    AOS.refresh();
+  }, [loading, resources.length, isAdmin]);
 
   const filteredResources = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -709,41 +771,52 @@ const ResourcesPage = ({ role, navigate }) => {
 
   const toggleTheme = () => setIsDarkMode((previous) => !previous);
 
-  const headerClass = isDarkMode ? "bg-slate-900/80" : "bg-white/80";
+  const headerClass = isDarkMode ? "bg-slate-900/80" : "bg-white/70";
   const shellClass = isDarkMode
     ? "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800"
-    : "bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200";
-  const panelClass = isDarkMode ? "bg-slate-900" : "bg-white";
+    : "bg-[radial-gradient(circle_at_10%_10%,rgba(59,130,246,0.12),transparent_40%),radial-gradient(circle_at_95%_10%,rgba(6,182,212,0.12),transparent_45%),linear-gradient(135deg,#f8fbff_0%,#eef2ff_50%,#ecfeff_100%)]";
+  const panelClass = isDarkMode ? "bg-slate-900/85" : "bg-white/80";
   const panelText = isDarkMode ? "text-slate-100" : "text-slate-900";
-  const subtleText = isDarkMode ? "text-slate-400" : "text-slate-500";
+  const subtleText = isDarkMode ? "text-slate-300" : "text-slate-600";
   const bodyText = isDarkMode ? "text-slate-300" : "text-slate-600";
   const calendarResource = detailTarget || filteredResources[0] || resources[0] || null;
 
   return (
-    <div className={`min-h-screen p-4 transition-colors duration-300 md:p-6 ${shellClass}`}>
+    <div className={`relative min-h-screen overflow-hidden p-4 transition-colors duration-300 md:p-6 ${shellClass}`}>
+      <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-1/3 h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl" />
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Top bar */}
-        <header className={`rounded-2xl p-5 shadow-lg backdrop-blur-sm transition-colors duration-300 ${headerClass}`}>
+        <header data-aos="fade-down" className={`relative overflow-hidden rounded-3xl border p-5 shadow-2xl backdrop-blur-md transition-colors duration-300 ${headerClass} ${
+          isDarkMode ? "border-slate-700/60" : "border-white/60"
+        }`}>
+          <div className={`absolute inset-0 ${
+            isDarkMode
+              ? "bg-[linear-gradient(120deg,rgba(37,99,235,.24),rgba(168,85,247,.18),rgba(6,182,212,.18))]"
+              : "bg-[linear-gradient(120deg,rgba(37,99,235,.14),rgba(168,85,247,.1),rgba(6,182,212,.12))]"
+          }`} />
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
+            <div className="relative z-10">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className={`text-2xl font-bold ${panelText}`}>Smart Campus Resource Management</h1>
+                <h1 className={`bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 bg-clip-text text-2xl font-extrabold text-transparent md:text-3xl ${isDarkMode ? "drop-shadow-[0_1px_0_rgba(15,23,42,.7)]" : ""}`}>
+                  Smart Campus Resource Management
+                </h1>
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isAdmin ? "bg-sky-100 text-sky-700" : "bg-emerald-100 text-emerald-700"}`}>
                   {isAdmin ? "ADMIN" : "STUDENT"}
                 </span>
               </div>
-              <p className={`text-sm ${subtleText}`}>
+              <p className={`mt-2 max-w-2xl text-sm ${subtleText}`}>
                 {isAdmin
                   ? "Professional admin console for full CRUD and resource control."
                   : "Read-only student view with booking UI and quick browsing."}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="relative z-10 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={toggleTheme}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition hover:scale-[1.02] ${
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 ${
                   isDarkMode ? "bg-slate-700 text-slate-100 hover:bg-slate-600" : "bg-slate-200 text-slate-800 hover:bg-slate-300"
                 }`}
               >
@@ -754,14 +827,14 @@ const ResourcesPage = ({ role, navigate }) => {
                   <button
                     type="button"
                     onClick={exportCsv}
-                    className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.02] hover:bg-cyan-700"
+                    className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg active:scale-95"
                   >
                     Export CSV
                   </button>
                   <button
                     type="button"
                     onClick={openCreate}
-                    className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.02] hover:bg-emerald-700"
+                    className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-lg active:scale-95"
                   >
                     + Add Resource
                   </button>
@@ -770,7 +843,7 @@ const ResourcesPage = ({ role, navigate }) => {
               <button
                 type="button"
                 onClick={() => navigate?.(isAdmin ? "/student" : "/admin")}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition hover:scale-[1.02] ${
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 ${
                   isDarkMode ? "bg-slate-800 text-slate-100 hover:bg-slate-700" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
@@ -782,11 +855,11 @@ const ResourcesPage = ({ role, navigate }) => {
 
         {/* Stats */}
         {loading ? (
-          <section className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <section data-aos="fade-up" className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
             {Array.from({ length: 6 }).map((_, index) => (
               <div
                 key={`stat-skel-${index}`}
-                className={`h-28 animate-pulse rounded-2xl ${isDarkMode ? "bg-slate-800" : "bg-slate-200"}`}
+                className={`relative h-28 overflow-hidden rounded-2xl ${isDarkMode ? "bg-slate-800" : "bg-slate-200"}`}
               />
             ))}
           </section>
@@ -795,29 +868,33 @@ const ResourcesPage = ({ role, navigate }) => {
             {stats.map((card, index) => (
               <article
                 key={card.title}
-                className={`rounded-2xl bg-gradient-to-r ${STAT_GRADIENTS[index % STAT_GRADIENTS.length]} p-4 text-white shadow-md ring-1 transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                data-aos="fade-up"
+                data-aos-delay={index * 70}
+                className={`group relative overflow-hidden rounded-2xl border border-transparent bg-white/30 p-4 text-white shadow-md backdrop-blur-xl ring-1 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
                   isDarkMode ? "ring-white/10" : "ring-black/5"
                 }`}
               >
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-2xl">{card.icon}</span>
+                <div className={`absolute inset-0 bg-gradient-to-r ${STAT_GRADIENTS[index % STAT_GRADIENTS.length]} opacity-95`} />
+                <div className="pointer-events-none absolute -right-5 -top-6 h-20 w-20 rounded-full bg-white/30 blur-2xl" />
+                <div className="relative mb-2 flex items-center justify-between">
+                  <span className="text-2xl transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6">{card.icon}</span>
                   <span className="rounded-full bg-white/20 px-2 py-1 text-xs font-semibold">Live</span>
                 </div>
-                <p className="text-sm text-white/85">{card.title}</p>
-                <p className="text-2xl font-bold">{card.value}</p>
+                <p className="relative text-sm text-white/85">{card.title}</p>
+                <p className="relative text-2xl font-bold"><AnimatedMetric value={card.value} /></p>
               </article>
             ))}
           </section>
         )}
 
         {/* Charts and filters */}
-        <section className={`rounded-2xl p-4 shadow-lg transition-colors duration-300 ${panelClass}`}>
+        <section data-aos="fade-up" className={`rounded-3xl border p-4 shadow-xl backdrop-blur-xl transition-colors duration-300 ${panelClass} ${isDarkMode ? "border-slate-700/70" : "border-white/70"}`}>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div>
               <ResourcesByTypeChart resources={resources} isDarkMode={isDarkMode} />
             </div>
 
-            <div className="space-y-4">
+            <div className={`space-y-4 rounded-3xl border p-4 backdrop-blur-xl ${isDarkMode ? "border-slate-700/70 bg-slate-800/45" : "border-white/70 bg-white/60"}`}>
               <h2 className={`text-lg font-bold ${panelText}`}>Search and Filters</h2>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
                 <input
@@ -825,18 +902,18 @@ const ResourcesPage = ({ role, navigate }) => {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search by name or location"
-                  className={`w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 xl:col-span-2 ${
+                  className={`w-full rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none xl:col-span-2 ${
                     isDarkMode
-                      ? "border-slate-700 bg-slate-800 text-slate-100 focus:bg-slate-800"
-                      : "border-slate-200 bg-slate-50 text-slate-700 focus:bg-white"
+                      ? "border-slate-700 bg-slate-900/60 text-slate-100 focus:bg-slate-800"
+                      : "border-slate-200 bg-white text-slate-700 focus:bg-white"
                   }`}
                 />
 
                 <select
                   value={typeFilter}
                   onChange={(event) => setTypeFilter(event.target.value)}
-                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 ${
-                    isDarkMode ? "border-slate-700 bg-slate-800 text-slate-100" : "border-slate-200 bg-white text-slate-700"
+                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none ${
+                    isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 >
                   <option value="ALL">All Types</option>
@@ -850,8 +927,8 @@ const ResourcesPage = ({ role, navigate }) => {
                 <select
                   value={statusFilter}
                   onChange={(event) => setStatusFilter(event.target.value)}
-                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 ${
-                    isDarkMode ? "border-slate-700 bg-slate-800 text-slate-100" : "border-slate-200 bg-white text-slate-700"
+                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none ${
+                    isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 >
                   <option value="ALL">All Status</option>
@@ -867,19 +944,19 @@ const ResourcesPage = ({ role, navigate }) => {
                   value={locationFilter}
                   onChange={(event) => setLocationFilter(event.target.value)}
                   placeholder="Location"
-                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 ${
-                    isDarkMode ? "border-slate-700 bg-slate-800 text-slate-100" : "border-slate-200 bg-white text-slate-700"
+                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none ${
+                    isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 />
 
                 <select
                   value={capacityFilter}
                   onChange={(event) => setCapacityFilter(event.target.value)}
-                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-sky-400 ${
-                    isDarkMode ? "border-slate-700 bg-slate-800 text-slate-100" : "border-slate-200 bg-white text-slate-700"
+                  className={`rounded-xl border px-3 py-2 text-sm outline-none transition-all duration-200 focus:-translate-y-[1px] focus:border-sky-400 focus:ring-2 focus:ring-sky-300/50 focus:ring-blue-500 focus:outline-none ${
+                    isDarkMode ? "border-slate-700 bg-slate-900/60 text-slate-100" : "border-slate-200 bg-white text-slate-700"
                   }`}
                 >
-                  <option value="ALL">All Capacities</option>
+                  <option value="ALL">Capacities</option>
                   <option value="SMALL">Small (1-50)</option>
                   <option value="MEDIUM">Medium (51-150)</option>
                   <option value="LARGE">Large (151+)</option>
@@ -903,8 +980,18 @@ const ResourcesPage = ({ role, navigate }) => {
 
         {/* Loading / Error */}
         {loading && (
-          <section className={`rounded-2xl p-4 shadow-lg ${panelClass}`}>
-            <Spinner label="Loading resources..." />
+          <section className={`rounded-3xl border p-4 shadow-lg backdrop-blur-xl ${panelClass} ${isDarkMode ? "border-slate-700/70" : "border-white/70"}`}>
+            <div className="space-y-4">
+              <Spinner label="Loading resources..." />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={`resource-skeleton-${index}`}
+                    className={`h-36 animate-pulse rounded-2xl bg-gradient-to-r ${isDarkMode ? "from-slate-800 via-slate-700 to-slate-800" : "from-slate-100 via-slate-50 to-slate-100"}`}
+                  />
+                ))}
+              </div>
+            </div>
           </section>
         )}
 
@@ -916,7 +1003,7 @@ const ResourcesPage = ({ role, navigate }) => {
 
         {/* Data Grid */}
         {!loading && !error && (
-          <section className={`rounded-2xl p-4 shadow-lg transition-colors duration-300 ${panelClass}`}>
+          <section data-aos="fade-up" className={`rounded-3xl border p-4 shadow-xl backdrop-blur-xl transition-colors duration-300 ${panelClass} ${isDarkMode ? "border-slate-700/70" : "border-white/70"}`}>
             <div className="mb-4 flex items-center justify-between gap-2">
               <div>
                 <h2 className={`text-lg font-bold ${panelText}`}>Resources</h2>
@@ -932,7 +1019,7 @@ const ResourcesPage = ({ role, navigate }) => {
                   type="button"
                   onClick={bulkDelete}
                   disabled={deleteBusy}
-                  className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-rose-700 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {deleteBusy ? "Deleting..." : `Delete Selected (${selectedIds.length})`}
                 </button>
@@ -945,22 +1032,33 @@ const ResourcesPage = ({ role, navigate }) => {
                 {pageData.map((resource) => (
                   <article
                     key={resource.id}
-                    className={`rounded-2xl border p-4 transition duration-200 hover:-translate-y-1 hover:shadow-md ${
-                      isDarkMode ? "border-slate-700 bg-slate-800 hover:bg-slate-700" : "border-slate-200 bg-slate-50 hover:bg-white"
+                    data-aos="fade-up"
+                    className={`group relative overflow-hidden rounded-2xl border border-transparent p-4 backdrop-blur-xl transition-all duration-300 [transform-style:preserve-3d] hover:-translate-y-1 hover:scale-[1.015] hover:shadow-xl hover:[transform:perspective(1000px)_rotateX(2deg)_rotateY(-4deg)] ${
+                      isDarkMode
+                        ? "[background:linear-gradient(rgba(15,23,42,.7),rgba(15,23,42,.7))_padding-box,linear-gradient(120deg,rgba(56,189,248,.45),rgba(45,212,191,.45),rgba(125,211,252,.45))_border-box] hover:[background:linear-gradient(rgba(30,41,59,.85),rgba(30,41,59,.85))_padding-box,linear-gradient(120deg,rgba(56,189,248,.75),rgba(45,212,191,.75),rgba(125,211,252,.75))_border-box]"
+                        : "[background:linear-gradient(rgba(255,255,255,.72),rgba(255,255,255,.72))_padding-box,linear-gradient(120deg,rgba(56,189,248,.35),rgba(16,185,129,.35),rgba(59,130,246,.35))_border-box] hover:[background:linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,.9))_padding-box,linear-gradient(120deg,rgba(56,189,248,.7),rgba(16,185,129,.7),rgba(59,130,246,.7))_border-box]"
                     }`}
                   >
+                    <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                      <img
+                        src={TYPE_THUMBNAILS[resource.type]}
+                        alt={TYPE_LABELS[resource.type]}
+                        className="h-28 w-full object-cover opacity-70 transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-blue-600/35 via-purple-600/25 to-transparent opacity-70 transition-opacity duration-300 group-hover:opacity-90" />
+                    </div>
                     <div className="mb-2 flex items-start justify-between gap-3">
-                      <div>
+                      <div className="relative z-10 mt-20">
                         <h3 className={`text-base font-bold ${isDarkMode ? "text-slate-100" : "text-slate-900"}`}>{resource.name}</h3>
                         <p className={`text-xs ${subtleText}`}>{resource.location}</p>
                       </div>
-                      <div className="flex items-start gap-2">
+                      <div className="relative z-10 flex items-start gap-2">
                         <button
                           type="button"
                           onClick={() => toggleFavourite(resource.id)}
-                          className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-base font-bold transition ${
+                          className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-base font-bold transition-all transition-transform duration-200 hover:scale-110 active:scale-95 ${
                             favouriteIds.includes(resource.id)
-                              ? "bg-rose-100 text-rose-600 hover:bg-rose-200"
+                              ? "animate-[pulse_1.2s_ease-in-out_infinite] bg-rose-100 text-rose-600 hover:bg-rose-200"
                               : isDarkMode
                                 ? "bg-slate-700 text-slate-300 hover:bg-slate-600"
                                 : "bg-slate-200 text-slate-500 hover:bg-slate-300"
@@ -976,7 +1074,7 @@ const ResourcesPage = ({ role, navigate }) => {
                       </div>
                     </div>
 
-                    <div className={`mb-3 space-y-1 text-sm ${bodyText}`}>
+                    <div className={`relative z-10 mb-3 space-y-1 text-sm ${bodyText}`}>
                       <p>
                         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${TYPE_BADGES[resource.type]}`}>
                           <span>{TYPE_ICONS[resource.type]}</span>
@@ -987,18 +1085,18 @@ const ResourcesPage = ({ role, navigate }) => {
                       <p>Available: {resource.availableFrom} - {resource.availableTo}</p>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="relative z-10 flex gap-2">
                       <button
                         type="button"
                         onClick={() => openDetails(resource)}
-                        className="flex-1 rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                        className="flex-1 rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-slate-200 active:scale-95"
                       >
                         Details
                       </button>
                       <button
                         type="button"
                         onClick={() => handleBook(resource)}
-                        className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                        className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-lg active:scale-95"
                       >
                         Book
                       </button>
@@ -1010,15 +1108,16 @@ const ResourcesPage = ({ role, navigate }) => {
 
             {/* Admin table */}
             {isAdmin && (
-              <div className="overflow-x-auto">
+              <div className={`overflow-x-auto rounded-2xl border ${isDarkMode ? "border-slate-700/70" : "border-slate-200"}`}>
                 <table className={`min-w-[1040px] w-full text-left text-sm ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}>
                   <thead>
-                    <tr className={`border-b text-xs uppercase tracking-wide ${isDarkMode ? "border-slate-700 text-slate-400" : "border-slate-200 text-slate-500"}`}>
+                    <tr className={`border-b bg-gradient-to-r from-blue-600 to-purple-600 text-xs uppercase tracking-[0.12em] text-white ${isDarkMode ? "border-slate-700" : "border-slate-200"}`}>
                       <th className="px-3 py-3">
                         <input
                           type="checkbox"
                           checked={pageData.length > 0 && selectedIds.length === pageData.length}
                           onChange={toggleSelectAll}
+                          className="h-4 w-4 rounded border-slate-400 text-sky-600 focus:ring-sky-400"
                         />
                       </th>
                       <th className="px-3 py-3">ID</th>
@@ -1035,19 +1134,24 @@ const ResourcesPage = ({ role, navigate }) => {
                     {pageData.map((resource) => (
                       <tr
                         key={resource.id}
-                        className={`border-b transition duration-200 ${isDarkMode ? "border-slate-800 hover:bg-slate-800/70" : "border-slate-100 hover:bg-slate-50"}`}
+                        className={`border-b transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                          isDarkMode
+                            ? "border-slate-800 odd:bg-slate-900/55 even:bg-slate-900/35 hover:bg-slate-700/60"
+                            : "border-slate-100 odd:bg-white even:bg-slate-50/70 hover:bg-sky-50/70"
+                        }`}
                       >
                         <td className="px-3 py-3">
                           <input
                             type="checkbox"
                             checked={selectedIds.includes(resource.id)}
                             onChange={() => toggleSelected(resource.id)}
+                            className="h-4 w-4 rounded border-slate-400 text-sky-600 focus:ring-sky-400"
                           />
                         </td>
                         <td className={`px-3 py-3 font-semibold ${isDarkMode ? "text-slate-300" : "text-slate-700"}`}>#{resource.id}</td>
                         <td className={`px-3 py-3 font-semibold ${isDarkMode ? "text-slate-100" : "text-slate-900"}`}>{resource.name}</td>
                         <td className="px-3 py-3">
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${TYPE_BADGES[resource.type]}`}>
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${TYPE_BADGES[resource.type]}`}>
                             <span>{TYPE_ICONS[resource.type]}</span>
                             <span>{TYPE_LABELS[resource.type]}</span>
                           </span>
@@ -1055,6 +1159,13 @@ const ResourcesPage = ({ role, navigate }) => {
                         <td className={`px-3 py-3 ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>{resource.capacity}</td>
                         <td className={`px-3 py-3 ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>{resource.location}</td>
                         <td className="px-3 py-3">
+                          <span className={`mb-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${
+                            resource.status === "ACTIVE"
+                              ? "bg-emerald-500/20 text-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.38)]"
+                              : resource.status === "OUT_OF_SERVICE"
+                                ? "bg-rose-500/20 text-rose-400 shadow-[0_0_14px_rgba(244,63,94,0.36)]"
+                                : "bg-amber-500/20 text-amber-300 shadow-[0_0_14px_rgba(245,158,11,0.34)]"
+                          }`}>{STATUS_LABELS[resource.status]}</span>
                           <select
                             value={resource.status}
                             onChange={async (event) => {
@@ -1066,7 +1177,7 @@ const ResourcesPage = ({ role, navigate }) => {
                                 showToast("error", e.message || "Failed to update status.");
                               }
                             }}
-                            className={`rounded-lg border px-2 py-1 text-xs font-semibold outline-none transition ${
+                            className={`rounded-lg border px-2 py-1 text-xs font-semibold outline-none transition-all duration-200 focus:ring-2 focus:ring-sky-300/50 ${
                               isDarkMode
                                 ? "border-slate-700 bg-slate-800 text-slate-100"
                                 : "border-slate-300 bg-white text-slate-700"
@@ -1087,7 +1198,8 @@ const ResourcesPage = ({ role, navigate }) => {
                             <button
                               type="button"
                               onClick={() => openEdit(resource)}
-                              className="rounded-lg bg-sky-100 px-2.5 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-200"
+                              className="rounded-lg bg-sky-100 px-2.5 py-1.5 text-xs font-semibold text-sky-700 transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-sky-200 active:scale-95"
+                              title="Edit resource"
                             >
                               Edit
                             </button>
@@ -1095,7 +1207,8 @@ const ResourcesPage = ({ role, navigate }) => {
                             <button
                               type="button"
                               onClick={() => handleDeleteClick(resource)}
-                              className="rounded-lg bg-rose-100 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-200"
+                              className="rounded-lg bg-rose-100 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition-all transition-transform duration-200 hover:-translate-y-0.5 hover:bg-rose-200 active:scale-95"
+                              title="Delete resource"
                             >
                               Delete
                             </button>
@@ -1121,12 +1234,12 @@ const ResourcesPage = ({ role, navigate }) => {
                   type="button"
                   disabled={page === 1}
                   onClick={() => setPage((previous) => Math.max(1, previous - 1))}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all transition-transform duration-200 active:scale-95 ${
                     page === 1
                       ? "cursor-not-allowed bg-slate-300 text-slate-500"
                       : isDarkMode
-                        ? "bg-slate-700 text-slate-100 hover:bg-slate-600"
-                        : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                        ? "bg-slate-700 text-slate-100 hover:-translate-y-0.5 hover:bg-slate-600"
+                        : "bg-slate-200 text-slate-700 hover:-translate-y-0.5 hover:bg-slate-300"
                   }`}
                 >
                   Previous
@@ -1138,12 +1251,12 @@ const ResourcesPage = ({ role, navigate }) => {
                   type="button"
                   disabled={page >= totalPages}
                   onClick={() => setPage((previous) => Math.min(totalPages, previous + 1))}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all transition-transform duration-200 active:scale-95 ${
                     page >= totalPages
                       ? "cursor-not-allowed bg-slate-300 text-slate-500"
                       : isDarkMode
-                        ? "bg-slate-700 text-slate-100 hover:bg-slate-600"
-                        : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                        ? "bg-slate-700 text-slate-100 hover:-translate-y-0.5 hover:bg-slate-600"
+                        : "bg-slate-200 text-slate-700 hover:-translate-y-0.5 hover:bg-slate-300"
                   }`}
                 >
                   Next
@@ -1155,8 +1268,9 @@ const ResourcesPage = ({ role, navigate }) => {
 
         {!loading && !error && !isAdmin && (
           <FavouriteResources
-            userId="student123"
             resources={filteredResources}
+            favouriteIds={favouriteIds}
+            onToggleFavourite={toggleFavourite}
             onQuickBook={handleBook}
             isDarkMode={isDarkMode}
             title="Favourite Resources"
@@ -1164,7 +1278,7 @@ const ResourcesPage = ({ role, navigate }) => {
         )}
 
         {!loading && !error && calendarResource && (
-          <section className={`rounded-2xl p-4 shadow-lg transition-colors duration-300 ${panelClass}`}>
+          <section data-aos="fade-up" className={`rounded-3xl border p-4 shadow-lg backdrop-blur-xl transition-colors duration-300 ${panelClass} ${isDarkMode ? "border-slate-700/70" : "border-white/70"}`}>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 className={`text-lg font-bold ${panelText}`}>Resource Availability Calendar</h2>
