@@ -95,6 +95,12 @@ public class AuthService {
         return response;
     }
 
+    public AuthResponse refreshCurrentUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return buildAuthResponse(user);
+    }
+
     private UserDto toUserDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());

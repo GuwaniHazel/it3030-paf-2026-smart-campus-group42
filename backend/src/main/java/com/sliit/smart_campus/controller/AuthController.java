@@ -7,6 +7,9 @@ import com.sliit.smart_campus.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,7 +35,18 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me() {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body("AuthController.me not implemented yet");
+    public ResponseEntity<AuthResponse> me() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails userDetails) {
+            AuthResponse authResponse = authService.refreshCurrentUser(userDetails.getUsername());
+            return ResponseEntity.ok(authResponse);
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }
