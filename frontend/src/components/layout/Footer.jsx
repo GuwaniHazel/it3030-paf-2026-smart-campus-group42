@@ -50,7 +50,7 @@ const Footer = () => {
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
           <div className="inline-flex items-center gap-2 text-slate-900 dark:text-slate-100">
-            <span className="text-xl">🏫</span>
+            <span className="text-xl">🎓 </span>
             <span className="text-lg font-bold">Smart Campus Hub</span>
           </div>
           <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
