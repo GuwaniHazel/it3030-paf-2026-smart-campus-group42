@@ -117,7 +117,7 @@ const Header = () => {
 
           
           <Link to="/about" className={desktopLinkClass}>
-            About
+            
           </Link>
           <Link to="/contact" className={desktopLinkClass}>
             Contact
