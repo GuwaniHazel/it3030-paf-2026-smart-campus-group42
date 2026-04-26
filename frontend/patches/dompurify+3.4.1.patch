@@ -1,0 +1,7 @@
+diff --git a/node_modules/dompurify/dist/purify.es.mjs b/node_modules/dompurify/dist/purify.es.mjs
+index 0000000..1111111 100644
+--- a/node_modules/dompurify/dist/purify.es.mjs
++++ b/node_modules/dompurify/dist/purify.es.mjs
+@@
+ export { purify as default };
+-//# sourceMappingURL=purify.es.mjs.map

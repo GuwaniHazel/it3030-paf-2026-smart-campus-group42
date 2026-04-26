@@ -1,33 +1,29 @@
 package com.sliit.smart_campus.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
-    private final ObjectMapper objectMapper;
 
     public OAuth2AuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider,
-                                              CustomUserDetailsService userDetailsService,
-                                              ObjectMapper objectMapper) {
+                                              CustomUserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
-        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -37,16 +33,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         UserDetails userDetails = userDetailsService.loadUserByUsername(authentication.getName());
         String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
+        long expiresIn = jwtTokenProvider.getExpirationDateFromToken(accessToken).getTime() - System.currentTimeMillis();
+        String roles = userDetails.getAuthorities().stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
 
-        Map<String, Object> tokenPayload = new HashMap<>();
-        tokenPayload.put("token", accessToken);
-        tokenPayload.put("refreshToken", refreshToken);
-        tokenPayload.put("expiresIn", jwtTokenProvider.getExpirationDateFromToken(accessToken).getTime() - System.currentTimeMillis());
-        tokenPayload.put("username", userDetails.getUsername());
-        tokenPayload.put("roles", userDetails.getAuthorities());
+        String fragment = UriComponentsBuilder.newInstance()
+                .queryParam("token", accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .queryParam("expiresIn", expiresIn)
+                .queryParam("username", userDetails.getUsername())
+                .queryParam("roles", roles)
+                .build()
+                .encode(StandardCharsets.UTF_8)
+                .toUriString();
 
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-        objectMapper.writeValue(response.getWriter(), tokenPayload);
+        String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth2/success")
+                .fragment(fragment)
+                .build()
+                .toUriString();
+
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
