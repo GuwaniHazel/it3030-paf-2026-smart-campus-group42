@@ -18,7 +18,7 @@ function TicketDashboard() {
 
   const loadTickets = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/tickets");
+      const res = await fetch("http://localhost:8081/api/tickets");
       const data = await res.json();
       setTickets(data);
     } catch (err) {

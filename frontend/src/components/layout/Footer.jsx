@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import { FaArrowUp } from "react-icons/fa";
@@ -156,15 +156,15 @@ const Footer = () => {
             Contact
           </h3>
           <ul className="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-            <li>📍 Colombo, Sri Lanka</li>
+            <li>ðŸ“ Colombo, Sri Lanka</li>
             <li>📧 support@smartcampushub.edu</li>
-            <li>📞 +94 11 234 5678</li>
+            <li>ðŸ“ž +94 11 234 5678</li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-slate-200 py-4 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
-        Copyright © {year} Smart Campus Hub. All rights reserved.
+        Copyright Â© {year} Smart Campus Hub. All rights reserved.
       </div>
 
       {showBackToTop && (

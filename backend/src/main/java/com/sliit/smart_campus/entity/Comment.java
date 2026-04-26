@@ -14,7 +14,7 @@ public class Comment {
 
     private Long ticketId;
 
-    private String user;
+    private String username;
 
     @Column(length = 1000)
     private String message;
@@ -35,8 +35,8 @@ public class Comment {
     public Long getTicketId() { return ticketId; }
     public void setTicketId(Long ticketId) { this.ticketId = ticketId; }
 
-    public String getUser() { return user; }
-    public void setUser(String user) { this.user = user; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }

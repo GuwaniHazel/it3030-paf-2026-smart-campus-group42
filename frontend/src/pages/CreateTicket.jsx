@@ -224,7 +224,7 @@ function CreateTicket({ onSuccess }) {
         formData.append("file", file);
       }
 
-      const response = await fetch("http://localhost:8080/api/tickets/upload", {
+      const response = await fetch("http://localhost:8081/api/tickets/upload", {
         method: "POST",
         body: formData
       });

@@ -9,6 +9,7 @@ import com.sliit.smart_campus.repository.RoleRepository;
 import com.sliit.smart_campus.repository.UserRepository;
 import com.sliit.smart_campus.security.CustomUserDetailsService;
 import com.sliit.smart_campus.security.JwtTokenProvider;
+import com.sliit.smart_campus.security.RoleName;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -61,8 +62,8 @@ public class AuthService {
         user.setLastName(request.getLastName());
         user.setEnabled(true);
 
-        Role defaultRole = roleRepository.findByName("ROLE_STUDENT")
-                .orElseGet(() -> roleRepository.save(new Role("ROLE_STUDENT", "Default student role")));
+        Role defaultRole = roleRepository.findByName(RoleName.ROLE_USER)
+                .orElseGet(() -> roleRepository.save(new Role(RoleName.ROLE_USER, "Default authenticated user")));
         Set<Role> roles = new HashSet<>();
         roles.add(defaultRole);
         user.setRoles(roles);

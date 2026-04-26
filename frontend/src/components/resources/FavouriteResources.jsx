@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 
 const FavouriteResources = ({
   resources = [],
@@ -97,7 +97,7 @@ const FavouriteResources = ({
               <div>
                 <p className="font-semibold">{resource.name}</p>
                 <p className={`text-xs ${subtleText}`}>
-                  {resource.location} • {resource.type} • Capacity {resource.capacity}
+                  {resource.location} â€¢ {resource.type} â€¢ Capacity {resource.capacity}
                 </p>
               </div>
 
@@ -115,7 +115,7 @@ const FavouriteResources = ({
                   aria-label={isFavourite ? `Remove ${resource.name} from favourites` : `Add ${resource.name} to favourites`}
                   title={isFavourite ? "Remove from favourites" : "Add to favourites"}
                 >
-                  {isFavourite ? "❤" : "♡"}
+                  {isFavourite ? "❤" : "â™¡"}
                 </button>
 
                 <button

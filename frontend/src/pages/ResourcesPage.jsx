@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import ResourcesByTypeChart from "../components/resources/ResourcesByTypeChart";
@@ -395,7 +395,7 @@ const ResourceDetailsModal = ({ isOpen, isDarkMode, resource, onClose, onBook, c
               {resource.name}
             </h3>
             <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
-              {TYPE_LABELS[resource.type]} • {resource.location}
+              {TYPE_LABELS[resource.type]} â€¢ {resource.location}
             </p>
           </div>
           <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGES[resource.status]}`}>
@@ -1066,7 +1066,7 @@ const ResourcesPage = ({ role, navigate }) => {
                           aria-label={favouriteIds.includes(resource.id) ? "Remove from favourites" : "Add to favourites"}
                           title={favouriteIds.includes(resource.id) ? "Remove from favourites" : "Add to favourites"}
                         >
-                          {favouriteIds.includes(resource.id) ? "❤" : "♡"}
+                          {favouriteIds.includes(resource.id) ? "❤" : "â™¡"}
                         </button>
                         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGES[resource.status]}`}>
                           {STATUS_LABELS[resource.status]}
