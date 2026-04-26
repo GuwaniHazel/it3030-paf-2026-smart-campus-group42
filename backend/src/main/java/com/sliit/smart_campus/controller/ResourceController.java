@@ -6,6 +6,7 @@ import com.sliit.smart_campus.service.ResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +34,7 @@ public class ResourceController {
     private ResourceService resourceService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'STAFF')")
     public ResponseEntity<List<Resource>> getAllResources(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String status,
@@ -73,17 +75,20 @@ public class ResourceController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'STAFF')")
     public ResponseEntity<Resource> getResourceById(@PathVariable Long id) {
         validateId(id);
         return ResponseEntity.ok(resourceService.getResourceById(id));
     }
 
     @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'STAFF')")
     public ResponseEntity<Map<String, Object>> getResourceStats() {
         return ResponseEntity.ok(resourceService.getResourceStats());
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<Resource> createResource(@RequestBody Resource resource) {
         validateResourceInput(resource);
         Resource createdResource = resourceService.createResource(resource);
@@ -92,6 +97,7 @@ public class ResourceController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<Resource> updateResource(@PathVariable Long id, @RequestBody Resource resource) {
         validateId(id);
         validateResourceInput(resource);
@@ -99,6 +105,7 @@ public class ResourceController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteResource(@PathVariable Long id) {
         validateId(id);
         resourceService.deleteResource(id);
