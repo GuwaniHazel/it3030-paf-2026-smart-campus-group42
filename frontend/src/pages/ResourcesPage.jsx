@@ -38,11 +38,11 @@ const STATUS_LABELS = {
 };
 
 const TYPE_ICONS = {
-  LECTURE_HALL: "ðŸ“š",
-  LAB: "ðŸ”¬",
-  AUDITORIUM: "ðŸŽ­",
+  LECTURE_HALL: "📚",
+  LAB: "🔬",
+  AUDITORIUM: "🎭",
   MEETING_ROOM: "ðŸ¢",
-  EQUIPMENT: "ðŸ§°",
+  EQUIPMENT: "🧰",
 };
 
 const TYPE_BADGES = {
@@ -590,12 +590,12 @@ const ResourcesPage = ({ role, navigate }) => {
     const utilizationRate = total ? Math.round((active / total) * 100) : 0;
 
     return [
-      { title: "Total Resources", value: total, icon: "ðŸ“Š" },
-      { title: "Active", value: active, icon: "âœ…" },
-      { title: "Out of Service", value: outOfService, icon: "âš ï¸" },
-      { title: "Categories", value: categories, icon: "ðŸ“" },
-      { title: "Bookings Today", value: bookingsToday, icon: "ðŸ“…" },
-      { title: "Utilization Rate", value: `${utilizationRate}%`, icon: "ðŸ“ˆ" },
+      { title: "Total Resources", value: total, icon: "📊" },
+      { title: "Active", value: active, icon: "✅" },
+      { title: "Out of Service", value: outOfService, icon: "⚠️" },
+      { title: "Categories", value: categories, icon: "📁" },
+      { title: "Bookings Today", value: bookingsToday, icon: "📅" },
+      { title: "Utilization Rate", value: `${utilizationRate}%`, icon: "📈" },
     ];
   }, [filteredResources]);
 
@@ -1066,7 +1066,7 @@ const ResourcesPage = ({ role, navigate }) => {
                           aria-label={favouriteIds.includes(resource.id) ? "Remove from favourites" : "Add to favourites"}
                           title={favouriteIds.includes(resource.id) ? "Remove from favourites" : "Add to favourites"}
                         >
-                          {favouriteIds.includes(resource.id) ? "â¤" : "â™¡"}
+                          {favouriteIds.includes(resource.id) ? "❤" : "â™¡"}
                         </button>
                         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGES[resource.status]}`}>
                           {STATUS_LABELS[resource.status]}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import { FaArrowUp } from "react-icons/fa";
@@ -13,15 +13,9 @@ const moduleLinks = [
 
 const quickLinks = [
   { label: "Home", to: "/" },
-<<<<<<< HEAD
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
   
-=======
-  
-  { label: "About", to: "/about" },
-  { label: "Contact", to: "/contact" },
->>>>>>> Booking-management
 ];
 
 const Footer = () => {
@@ -56,11 +50,7 @@ const Footer = () => {
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
           <div className="inline-flex items-center gap-2 text-slate-900 dark:text-slate-100">
-<<<<<<< HEAD
             <span className="text-xl">🎓 </span>
-=======
-            <span className="text-xl">🏫</span>
->>>>>>> Booking-management
             <span className="text-lg font-bold">Smart Campus Hub</span>
           </div>
           <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
@@ -166,15 +156,15 @@ const Footer = () => {
             Contact
           </h3>
           <ul className="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-            <li>📍 Colombo, Sri Lanka</li>
+            <li>ðŸ“ Colombo, Sri Lanka</li>
             <li>📧 support@smartcampushub.edu</li>
-            <li>📞 +94 11 234 5678</li>
+            <li>ðŸ“ž +94 11 234 5678</li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-slate-200 py-4 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
-        Copyright © {year} Smart Campus Hub. All rights reserved.
+        Copyright Â© {year} Smart Campus Hub. All rights reserved.
       </div>
 
       {showBackToTop && (

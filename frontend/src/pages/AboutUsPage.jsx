@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -26,7 +26,6 @@ const CTA_BG_URL =
 // Team members data
 const teamMembers = [
   {
-<<<<<<< HEAD
     name: "Guwani Hathurusinghe",
     role: "Facilities & Assets Catalogue",
     image: "https://randomuser.me/api/portraits/women/2.jpg",
@@ -44,25 +43,6 @@ const teamMembers = [
   {
     name: "Midunesh",
     role: "Notification",
-=======
-    name: "Sarah Anderson",
-    role: "Project Lead - Module A",
-    image: "https://randomuser.me/api/portraits/women/1.jpg",
-  },
-  {
-    name: "John Smith",
-    role: "Backend Lead - Module B",
-    image: "https://randomuser.me/api/portraits/men/1.jpg",
-  },
-  {
-    name: "Emily Chen",
-    role: "UI/UX Designer - Module C",
-    image: "https://randomuser.me/api/portraits/women/2.jpg",
-  },
-  {
-    name: "Michael Johnson",
-    role: "DevOps Lead - Module D",
->>>>>>> Booking-management
     image: "https://randomuser.me/api/portraits/men/2.jpg",
   },
 ];

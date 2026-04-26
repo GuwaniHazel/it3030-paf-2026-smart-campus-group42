@@ -1,14 +1,10 @@
-// frontend/src/App.js
+﻿// frontend/src/App.js
 import { useLocation, useNavigate } from "react-router-dom";
 import ResourcesPage from "./pages/ResourcesPage";
 import HomePage from "./pages/HomePage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ContactUsPage from "./pages/ContactUs";
 import TicketsPage from "./pages/TicketsPage";
-<<<<<<< HEAD
-=======
-import BookingsPage from "./pages/BookingsPage";
->>>>>>> Booking-management
 import Layout from "./components/layout/Layout";
 
 const PlaceholderPage = ({ title, description, navigate }) => (
@@ -29,7 +25,6 @@ const PlaceholderPage = ({ title, description, navigate }) => (
   </div>
 );
 
-<<<<<<< HEAD
 const BookingManagementPage = ({ navigate }) => (
   <PlaceholderPage
     title="Booking Management"
@@ -37,9 +32,6 @@ const BookingManagementPage = ({ navigate }) => (
     navigate={navigate}
   />
 );
-=======
-// Module B – Booking Management is now fully implemented.
->>>>>>> Booking-management
 
 const NotificationsPage = ({ navigate }) => (
   <PlaceholderPage
@@ -77,11 +69,7 @@ function App() {
   }
 
   if (pathname.startsWith("/bookings")) {
-<<<<<<< HEAD
     content = <BookingManagementPage navigate={navigate} />;
-=======
-    content = <BookingsPage />;
->>>>>>> Booking-management
   }
 
   if (pathname.startsWith("/tickets")) {
