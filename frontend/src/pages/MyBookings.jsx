@@ -17,7 +17,7 @@ function MyBookings() {
   const loadBookings = async () => {
     if (!userId) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/bookings/user/${userId}`);
+      const res = await fetch(`http://localhost:8081/api/bookings/user/${userId}`);
       const data = await res.json();
       setBookings(data);
     } catch (err) {
@@ -39,7 +39,7 @@ function MyBookings() {
     if (!confirmed) return;
 
     try {
-      await fetch(`http://localhost:8080/api/bookings/${bookingId}/cancel`, {
+      await fetch(`http://localhost:8081/api/bookings/${bookingId}/cancel`, {
         method: "PUT"
       });
       alert("Booking cancelled successfully");

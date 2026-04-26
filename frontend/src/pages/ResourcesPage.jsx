@@ -41,7 +41,7 @@ const TYPE_ICONS = {
   LECTURE_HALL: "📚",
   LAB: "🔬",
   AUDITORIUM: "🎭",
-  MEETING_ROOM: "ðŸ¢",
+  MEETING_ROOM: "🏢",
   EQUIPMENT: "🧰",
 };
 

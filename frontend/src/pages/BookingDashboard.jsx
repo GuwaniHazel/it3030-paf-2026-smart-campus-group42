@@ -23,16 +23,27 @@ import autoTable from "jspdf-autotable";
 
 function BookingDashboard() {
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState("");
 
   const loadBookings = async () => {
+    setLoading(true);
+    setError("");
     try {
-      const res = await fetch("http://localhost:8080/api/bookings");
+      const res = await fetch("http://localhost:8081/api/bookings");
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
-      setBookings(data);
+      // Guard: API must return an array; fall back to [] otherwise
+      setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setError(err.message || "Failed to load bookings.");
+      setBookings([]);
+    } finally {
+      setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadBookings();
@@ -87,42 +98,57 @@ function BookingDashboard() {
     <div style={{ padding: "20px" }}>
       <h2>📅 Booking Dashboard</h2>
 
-      {/* PDF download button */}
-      <div style={{ marginBottom: "20px" }}>
-        <button style={pdfBtn} onClick={downloadPDF}>
-          📄 Download Report
-        </button>
-      </div>
+      {loading && (
+        <p style={{ color: "#64748b", marginTop: "12px" }}>Loading bookings…</p>
+      )}
 
-      {/* Stats cards */}
-      <div style={grid}>
-        <Card title="Total Bookings" value={stats.total} />
-        <Card title="Pending"        value={stats.pending} />
-        <Card title="Approved"       value={stats.approved} />
-        <Card title="Rejected"       value={stats.rejected} />
-        <Card title="Cancelled"      value={stats.cancelled} />
-      </div>
+      {!loading && error && (
+        <div style={{ background: "#fee2e2", color: "#b91c1c", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px" }}>
+          {error}
+        </div>
+      )}
 
-      {/* Bar chart */}
-      <div style={chartBox}>
-        <h3>Booking Status Overview</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="value">
-              {chartData.map((entry, index) => (
-                <Cell key={index} fill={COLORS[index]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      {!loading && !error && (
+        <>
+          {/* PDF download button */}
+          <div style={{ marginBottom: "20px", marginTop: "12px" }}>
+            <button style={pdfBtn} onClick={downloadPDF}>
+              📄 Download Report
+            </button>
+          </div>
+
+          {/* Stats cards */}
+          <div style={grid}>
+            <Card title="Total Bookings" value={stats.total} />
+            <Card title="Pending"        value={stats.pending} />
+            <Card title="Approved"       value={stats.approved} />
+            <Card title="Rejected"       value={stats.rejected} />
+            <Card title="Cancelled"      value={stats.cancelled} />
+          </div>
+
+          {/* Bar chart */}
+          <div style={chartBox}>
+            <h3>Booking Status Overview</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value">
+                  {chartData.map((entry, index) => (
+                    <Cell key={index} fill={COLORS[index]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
     </div>
   );
 }
+
 
 // Inner card component — same pattern as TicketDashboard.jsx
 function Card({ title, value }) {

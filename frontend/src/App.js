@@ -1,10 +1,11 @@
-﻿// frontend/src/App.js
+// frontend/src/App.js
 import { useLocation, useNavigate } from "react-router-dom";
 import ResourcesPage from "./pages/ResourcesPage";
 import HomePage from "./pages/HomePage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ContactUsPage from "./pages/ContactUs";
 import TicketsPage from "./pages/TicketsPage";
+import BookingsPage from "./pages/BookingsPage";
 import Layout from "./components/layout/Layout";
 
 const PlaceholderPage = ({ title, description, navigate }) => (
@@ -23,14 +24,6 @@ const PlaceholderPage = ({ title, description, navigate }) => (
       </div>
     </div>
   </div>
-);
-
-const BookingManagementPage = ({ navigate }) => (
-  <PlaceholderPage
-    title="Booking Management"
-    description="This is a placeholder page for Module B. Booking workflows will be implemented here."
-    navigate={navigate}
-  />
 );
 
 const NotificationsPage = ({ navigate }) => (
@@ -68,8 +61,9 @@ function App() {
     content = <ResourcesPage role="student" navigate={navigate} />;
   }
 
+  // ── Booking Management (all booking sub-pages live inside BookingsPage) ──
   if (pathname.startsWith("/bookings")) {
-    content = <BookingManagementPage navigate={navigate} />;
+    content = <BookingsPage />;
   }
 
   if (pathname.startsWith("/tickets")) {

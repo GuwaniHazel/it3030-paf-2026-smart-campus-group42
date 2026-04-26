@@ -15,7 +15,7 @@ function AdminBookings() {
 
   const loadBookings = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/bookings");
+      const res = await fetch("http://localhost:8081/api/bookings");
       const data = await res.json();
       setBookings(data);
     } catch (err) {
@@ -33,7 +33,7 @@ function AdminBookings() {
 
   const approveBooking = async (bookingId) => {
     try {
-      await fetch(`http://localhost:8080/api/bookings/${bookingId}/approve`, {
+      await fetch(`http://localhost:8081/api/bookings/${bookingId}/approve`, {
         method: "PUT"
       });
       alert("Booking approved successfully");
@@ -52,7 +52,7 @@ function AdminBookings() {
     }
 
     try {
-      await fetch(`http://localhost:8080/api/bookings/${bookingId}/reject`, {
+      await fetch(`http://localhost:8081/api/bookings/${bookingId}/reject`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: reason })
@@ -71,7 +71,7 @@ function AdminBookings() {
     if (!confirmed) return;
 
     try {
-      await fetch(`http://localhost:8080/api/bookings/${bookingId}/cancel`, {
+      await fetch(`http://localhost:8081/api/bookings/${bookingId}/cancel`, {
         method: "PUT"
       });
       alert("Booking cancelled");

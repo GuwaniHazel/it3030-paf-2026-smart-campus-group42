@@ -9,7 +9,7 @@ function MyTickets() {
 
   const loadTickets = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/tickets");
+      const res = await fetch("http://localhost:8081/api/tickets");
       const data = await res.json();
       setTickets(data);
     } catch (err) {
@@ -23,7 +23,7 @@ function MyTickets() {
 
   const fetchComments = async (ticketId) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/comments/${ticketId}`);
+      const res = await fetch(`http://localhost:8081/api/comments/${ticketId}`);
       const data = await res.json();
 
       setComments((prev) => ({
@@ -51,7 +51,7 @@ function MyTickets() {
         return;
       }
 
-      await fetch("http://localhost:8080/api/comments", {
+      await fetch("http://localhost:8081/api/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -90,7 +90,7 @@ function MyTickets() {
     }
 
     try {
-      await fetch(`http://localhost:8080/api/tickets/${ticketId}`, {
+      await fetch(`http://localhost:8081/api/tickets/${ticketId}`, {
         method: "DELETE"
       });
 
@@ -164,7 +164,7 @@ function MyTickets() {
               <b>Attachment:</b>{" "}
               {ticket.attachment ? (
                 <a
-                  href={`http://localhost:8080/uploads/${ticket.attachment}`}
+                  href={`http://localhost:8081/uploads/${ticket.attachment}`}
                   target="_blank"
                   rel="noreferrer"
                 >
