@@ -81,7 +81,11 @@ const Header = () => {
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200 bg-white/85 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/85">
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link to="/" className="inline-flex items-center gap-2 text-slate-900 dark:text-slate-100">
+<<<<<<< HEAD
           <span className="text-xl">🎓 </span>
+=======
+          <span className="text-xl">🏫</span>
+>>>>>>> Booking-management
           <span className="text-base font-bold sm:text-lg">Smart Campus Hub</span>
         </Link>
 

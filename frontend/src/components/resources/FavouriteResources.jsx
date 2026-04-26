@@ -1,17 +1,74 @@
+<<<<<<< HEAD
 import { useMemo, useState } from "react";
 
 const FavouriteResources = ({
   resources = [],
   favouriteIds = [],
   onToggleFavourite,
+=======
+import { useEffect, useMemo, useState } from "react";
+
+const STORAGE_KEY = "userFavourites";
+
+const FavouriteResources = ({
+  userId = "student123",
+  resources = [],
+>>>>>>> Booking-management
   onQuickBook,
   isDarkMode = false,
   title = "Favourite Resources",
 }) => {
+<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState("all");
 
   const toggleFavourite = (resourceId) => {
     onToggleFavourite?.(resourceId);
+=======
+  const [favouriteIds, setFavouriteIds] = useState([]);
+  const [activeTab, setActiveTab] = useState("all");
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+
+      if (!raw) {
+        const initialPayload = { userId, favourites: [] };
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(initialPayload));
+        setFavouriteIds([]);
+        return;
+      }
+
+      const parsed = JSON.parse(raw);
+
+      if (parsed?.userId !== userId || !Array.isArray(parsed?.favourites)) {
+        const resetPayload = { userId, favourites: [] };
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(resetPayload));
+        setFavouriteIds([]);
+        return;
+      }
+
+      setFavouriteIds(parsed.favourites);
+    } catch {
+      const fallbackPayload = { userId, favourites: [] };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackPayload));
+      setFavouriteIds([]);
+    }
+  }, [userId]);
+
+  const persistFavourites = (nextFavourites) => {
+    setFavouriteIds(nextFavourites);
+    const payload = { userId, favourites: nextFavourites };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  };
+
+  const toggleFavourite = (resourceId) => {
+    const isFav = favouriteIds.includes(resourceId);
+    const next = isFav
+      ? favouriteIds.filter((id) => id !== resourceId)
+      : [...favouriteIds, resourceId];
+
+    persistFavourites(next);
+>>>>>>> Booking-management
   };
 
   const favouriteResources = useMemo(
