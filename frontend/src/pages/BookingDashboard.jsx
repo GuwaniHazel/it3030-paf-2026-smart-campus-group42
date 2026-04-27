@@ -12,23 +12,14 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// Matches TicketDashboard.jsx pattern exactly:
-//  - function keyword declaration
-//  - fetch all bookings on mount
-//  - useMemo for stats calculation
-//  - recharts BarChart with Cell colors
-//  - jsPDF report download
-//  - inline style objects (grid, card, chartBox, pdfBtn)
-//  - inner Card component defined in same file
-
 function BookingDashboard() {
   const [bookings, setBookings] = useState([]);
 
   const loadBookings = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/bookings");
+      const res = await fetch("http://localhost:8081/api/bookings");
       const data = await res.json();
-      setBookings(data);
+      setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
     }
@@ -38,7 +29,6 @@ function BookingDashboard() {
     loadBookings();
   }, []);
 
-  // Compute stats from booking data
   const stats = useMemo(() => {
     return {
       total:     bookings.length,
@@ -87,14 +77,12 @@ function BookingDashboard() {
     <div style={{ padding: "20px" }}>
       <h2>📅 Booking Dashboard</h2>
 
-      {/* PDF download button */}
       <div style={{ marginBottom: "20px" }}>
         <button style={pdfBtn} onClick={downloadPDF}>
           📄 Download Report
         </button>
       </div>
 
-      {/* Stats cards */}
       <div style={grid}>
         <Card title="Total Bookings" value={stats.total} />
         <Card title="Pending"        value={stats.pending} />
@@ -103,7 +91,6 @@ function BookingDashboard() {
         <Card title="Cancelled"      value={stats.cancelled} />
       </div>
 
-      {/* Bar chart */}
       <div style={chartBox}>
         <h3>Booking Status Overview</h3>
         <ResponsiveContainer width="100%" height={250}>
@@ -124,7 +111,6 @@ function BookingDashboard() {
   );
 }
 
-// Inner card component — same pattern as TicketDashboard.jsx
 function Card({ title, value }) {
   return (
     <div style={card}>
@@ -133,8 +119,6 @@ function Card({ title, value }) {
     </div>
   );
 }
-
-/* ── Inline styles (matches TicketDashboard.jsx exactly) ── */
 
 const grid = {
   display: "grid",

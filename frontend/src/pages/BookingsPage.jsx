@@ -19,11 +19,9 @@ const BookingsPage = () => {
     <div className="bg-gradient-to-b from-slate-50 via-white to-cyan-50/60 py-8 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-        {/* ── Hero section ── */}
         <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-900">
           <div className="grid gap-8 px-6 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:px-10 lg:py-10">
 
-            {/* Left: heading + tabs */}
             <div>
               <span className="inline-flex rounded-full bg-cyan-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-cyan-800 dark:bg-cyan-500/15 dark:text-cyan-300">
                 Booking Management
@@ -35,7 +33,6 @@ const BookingsPage = () => {
                 Request lecture halls, labs, and equipment. Admins approve or reject bookings with a reason, and you can track every request in real time.
               </p>
 
-              {/* Tab pills */}
               <div className="mt-8 flex flex-wrap gap-3">
                 {TABS.map((tab) => {
                   const Icon = tab.icon;
@@ -59,7 +56,6 @@ const BookingsPage = () => {
               </div>
             </div>
 
-            {/* Right: quick-stat cards */}
             <div className="grid gap-4 sm:grid-cols-2">
               <StatCard label="Instant requests" value="24/7" note="Submit bookings any time" />
               <StatCard label="Tracking"         value="Live" note="See status changes instantly" />
@@ -69,7 +65,6 @@ const BookingsPage = () => {
           </div>
         </section>
 
-        {/* ── Tab content section ── */}
         <section className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-900 sm:p-6 lg:p-8">
           {activeTab === "create"    && <CreateBooking onSuccess={() => setActiveTab("my")} />}
           {activeTab === "my"        && <MyBookings />}

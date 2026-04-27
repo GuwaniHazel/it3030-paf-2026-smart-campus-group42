@@ -1,13 +1,5 @@
 import { useState } from "react";
 
-// Matches CreateTicket.jsx pattern exactly:
-//  - function keyword declaration
-//  - single handleChange handler
-//  - validateForm() before submit
-//  - direct fetch() — no service file
-//  - alert() for feedback
-//  - inputStyle / buttonStyle / errorStyle const objects at bottom
-
 function CreateBooking({ onSuccess }) {
   const [booking, setBooking] = useState({
     userId:     "",
@@ -60,7 +52,7 @@ function CreateBooking({ onSuccess }) {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch("http://localhost:8080/api/bookings", {
+      const response = await fetch("http://localhost:8081/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -79,7 +71,6 @@ function CreateBooking({ onSuccess }) {
         throw new Error(msg);
       }
 
-      // Store userId so MyBookings can retrieve it (same pattern as userEmail in tickets)
       localStorage.setItem("bookingUserId", booking.userId);
 
       alert("Booking submitted successfully! Status: PENDING");
